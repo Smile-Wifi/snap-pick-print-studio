@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Camera, Check, ImagePlus, LockKeyhole, Music2, ShieldCheck, Upload, X } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, Camera, Check, ImagePlus, LockKeyhole, Music2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { howItWorks, packages, photoStyles, type PackageId } from "@/lib/pasko-content";
+import { howItWorks, packages, photoStyles } from "@/lib/pasko-content";
 import ChristmasHero from "@/assets/pasko-christmas-studio.jpg.asset.json";
 import { SiteHeader, SiteFooter } from "@/components/pasko-layout";
 
@@ -12,7 +12,7 @@ type PaymentChoice = "gcash" | "maya" | "bank";
 
 export const Route = createFileRoute("/create")({
   validateSearch: (search: Record<string, unknown>) => ({
-    pkg: search.pkg === "premium" ? "premium" : "basic",
+    pkg: search["pkg"] === "premium" ? "premium" : "basic",
   }),
   head: () => ({
     meta: [
@@ -34,6 +34,7 @@ const fileSizeLimit = 10 * 1024 * 1024;
 function CreatePage() {
   const { pkg } = Route.useSearch();
   const currentPackage = packages[pkg];
+  const selectedStyleName = photoStyles[selectedStyle]?.name ?? photoStyles[0]?.name ?? "Simbang Gabi";
   const navigate = useNavigate();
   const fileInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
@@ -173,7 +174,7 @@ function CreatePage() {
               <section className="step-complete" aria-labelledby="review-heading">
                 <span className="step-complete-icon"><Check /></span>
                 <h2 id="review-heading">Your order is ready to review</h2>
-                <p>{photo?.name} · {photoStyles[selectedStyle].name} · {payment === "bank" ? "Bank transfer" : payment === "gcash" ? "GCash" : "Maya"}</p>
+                <p>{photo?.name} · {selectedStyleName} · {payment === "bank" ? "Bank transfer" : payment === "gcash" ? "GCash" : "Maya"}</p>
                 <div className="preview-note">The original app requires payment verification before photos are generated. This recreation does not submit payment or upload your photo.</div>
                 <div className="step-buttons"><Button variant="outline" onClick={() => setStep(3)}><ArrowLeft /> Back</Button><Button variant="secondary" onClick={() => { setStep(1); setPhoto(null); }}>Start over</Button></div>
               </section>

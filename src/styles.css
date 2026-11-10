@@ -167,11 +167,6 @@
   }
 }
 
-.christmas-backdrop {
-  background-image: linear-gradient(var(--page-wash), var(--page-wash)),
-    url("/ __unused__");
-}
-
 .brand-name,
 .display-font {
   font-family: var(--font-display);
@@ -242,11 +237,6 @@
 
 .backdrop-page {
   background-color: var(--ice);
-  background-image: linear-gradient(var(--page-wash), var(--page-wash)),
-    url("/ __unused__");
-  background-position: center top;
-  background-size: cover;
-  background-attachment: fixed;
 }
 
 .home-content {
@@ -360,6 +350,42 @@
 }
 
 .styles-art { max-height: 900px; }
+
+.process-list,
+.style-list {
+  width: min(760px, 100%);
+  margin: 24px auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.process-list li,
+.style-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.process-number {
+  display: grid;
+  width: 34px;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pine);
+  color: var(--snow);
+  font-weight: 700;
+}
+
+.process-list strong,
+.style-item strong { color: var(--pine-deep); }
+.process-list p { margin: 4px 0 0; color: var(--muted-foreground); line-height: 1.5; }
+.style-item > svg:first-child { flex: 0 0 auto; color: var(--holly); }
+.style-item > svg:last-child { flex: 0 0 auto; margin-left: auto; color: var(--pine); }
+.style-item span { display: block; margin-top: 4px; color: var(--muted-foreground); font-size: 13px; }
 
 .faq-list {
   width: min(740px, 100%);
@@ -525,6 +551,7 @@
   .hero-poster { width: 100%; }
   .content-section { margin-top: 24px; }
   .package-grid { grid-template-columns: 1fr; }
+  .package-card .button { max-width: 100%; }
   .feature-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-top { flex-direction: column; }
   .create-main { width: min(100% - 24px, 1056px); padding-top: 28px; }

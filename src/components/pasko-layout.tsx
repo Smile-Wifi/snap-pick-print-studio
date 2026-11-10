@@ -25,7 +25,7 @@ export function SiteHeader() {
           <Link to="/" hash="track-order">Track Order</Link>
         </nav>
         <span className="language-label">EN · FIL</span>
-        <Button size="sm" asChild><Link to="/create">Create</Link></Button>
+        <Button size="sm" asChild><Link to="/create" search={{ pkg: "basic" }}>Create</Link></Button>
       </div>
     </header>
   );
