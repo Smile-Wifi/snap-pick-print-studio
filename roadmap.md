@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Attach the uploaded flag with a rope, animate wind ripples, and verify Santa sound/mute behavior.
+
 - [x] Recreate the uploaded storefront, checkout, customer order/payment/tracking routes, and legal/help pages in the current app.
 - [x] Recreate the role-protected staff dashboard and authentication flows using Lovable Cloud; keep roles in a separate server-checked table.
 - [x] Apply the migrated orders/settings/samples/payments schema and private photo storage; omit the archive's placeholder recipient account details.

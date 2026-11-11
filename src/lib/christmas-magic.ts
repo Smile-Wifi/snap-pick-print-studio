@@ -55,12 +55,16 @@ export class ChristmasSound {
 
   // Santa calls out as the sleigh passes, using the device's own voice.
   greet() {
-    if (typeof speechSynthesis === "undefined" || document.hidden) return;
+    if (this.context?.state !== "running" || typeof speechSynthesis === "undefined" || document.hidden) return;
     const text = GREETINGS[this.greetingIndex % GREETINGS.length] ?? GREETINGS[0];
     this.greetingIndex += 1;
     speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "fil-PH";
+    const voices = speechSynthesis.getVoices();
+    const voice = voices.find((v) => /^(fil|tl)(-|$)/i.test(v.lang))
+      ?? voices.find((v) => /^en(-|$)/i.test(v.lang));
+    if (voice) utterance.voice = voice;
+    utterance.lang = voice?.lang ?? "fil-PH";
     utterance.rate = 0.9;
     utterance.pitch = 0.6;
     utterance.volume = 0.9;
