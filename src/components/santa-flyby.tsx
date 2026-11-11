@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChristmasSound } from "@/lib/christmas-magic";
@@ -13,6 +13,8 @@ export function SantaFlyby() {
   const rippleId = useId().replace(/:/g, "");
   const flight = useRef<HTMLDivElement>(null);
   const sound = useRef<ChristmasSound | null>(null);
+  const interacted = useRef(false);
+  const starting = useRef(false);
   const [show, setShow] = useState(false);
   const [enabled, setEnabled] = useState(false);
 
@@ -59,12 +61,9 @@ export function SantaFlyby() {
     };
   }, []);
 
-  async function toggle() {
-    if (enabled) {
-      sound.current?.stop();
-      setEnabled(false);
-      return;
-    }
+  const startSound = useCallback(async () => {
+    if (starting.current) return;
+    starting.current = true;
     sound.current ??= new ChristmasSound();
     try {
       const running = await sound.current.start();
@@ -75,7 +74,31 @@ export function SantaFlyby() {
       sound.current?.stop();
       sound.current = null;
       setEnabled(false);
+    } finally {
+      starting.current = false;
     }
+  }, []);
+
+  useEffect(() => {
+    const firstClick = (event: MouseEvent) => {
+      if (interacted.current) return;
+      interacted.current = true;
+      // Let the speaker button handle its own click without starting twice.
+      if (event.target instanceof Element && event.target.closest(".santa-sound-toggle")) return;
+      void startSound();
+    };
+    document.addEventListener("click", firstClick, { capture: true });
+    return () => document.removeEventListener("click", firstClick, { capture: true });
+  }, [startSound]);
+
+  async function toggle() {
+    interacted.current = true;
+    if (enabled || starting.current) {
+      sound.current?.stop();
+      setEnabled(false);
+      return;
+    }
+    await startSound();
   }
 
   if (!show) return null;

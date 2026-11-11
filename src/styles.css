@@ -790,7 +790,7 @@
 @media (max-width: 600px) { .santa-flyby { width: 180px; } .santa-trail { width: 140px; } }
 
 /* Poster towed behind the sleigh */
-.santa-tow { position: absolute; right: 88%; top: 28%; width: 80%; aspect-ratio: 1.65; }
+.santa-tow { position: absolute; right: 88%; top: 32%; width: 56%; aspect-ratio: 1.65; }
 .santa-flyby[data-direction="left"] .santa-tow { right: auto; left: 88%; }
 .santa-rope { position: absolute; right: 0; top: 15%; width: 24%; height: 65%; overflow: visible; }
 .santa-rope path { fill: none; stroke: var(--gold); stroke-width: 2; stroke-linecap: round; }
