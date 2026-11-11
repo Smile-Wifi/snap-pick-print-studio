@@ -8,7 +8,7 @@ import Poster from "@/assets/eyeberry.png.asset.json";
 const flakes = Array.from({ length: 18 }, (_, i) => ({ left: (i * 53) % 100, size: 6 + ((i * 7) % 10), duration: 9 + ((i * 3) % 9), delay: -((i * 1.7) % 12) }));
 
 // Santa's sleigh flies across the screen every so often, towing a poster,
-// with gentle snowfall and an optional jingle-and-greeting sound button.
+// with gentle snowfall and distance-aware playback of the uploaded recording.
 export function SantaFlyby() {
   const rippleId = useId().replace(/:/g, "");
   const flight = useRef<HTMLDivElement>(null);
@@ -25,7 +25,6 @@ export function SantaFlyby() {
   useEffect(() => {
     if (!show || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer: ReturnType<typeof setTimeout>;
-    let greetingTimer: ReturnType<typeof setTimeout> | undefined;
     let animation: Animation | undefined;
     const pass = () => {
       const el = flight.current;
@@ -42,13 +41,32 @@ export function SantaFlyby() {
           { opacity: 1, offset: 0.85 },
           { transform: t(reverse ? -40 : 115, toY), opacity: 0 },
         ], { duration, easing: "ease-in-out" });
-        greetingTimer = setTimeout(() => sound.current?.greet(), duration * 0.3);
       }
       timer = setTimeout(pass, 10000 + Math.random() * 12000);
     };
     timer = setTimeout(pass, 2500);
-    return () => { clearTimeout(timer); clearTimeout(greetingTimer); animation?.cancel(); };
+    return () => { clearTimeout(timer); animation?.cancel(); };
   }, [show]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let frame: number;
+    const updateVolume = () => {
+      const el = flight.current;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const visible = Number.parseFloat(getComputedStyle(el).opacity) > 0.05
+          && getComputedStyle(el.parentElement ?? el).display !== "none";
+        const distance = visible
+          ? Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2) / (window.innerWidth / 2)
+          : 1;
+        sound.current?.setDistance(distance);
+      }
+      frame = requestAnimationFrame(updateVolume);
+    };
+    frame = requestAnimationFrame(updateVolume);
+    return () => cancelAnimationFrame(frame);
+  }, [enabled]);
 
   useEffect(() => {
     const visibility = () => {
@@ -68,7 +86,6 @@ export function SantaFlyby() {
     try {
       const running = await sound.current.start();
       setEnabled(running);
-      if (running) sound.current.greet();
       if (!running) sound.current = null;
     } catch {
       sound.current?.stop();

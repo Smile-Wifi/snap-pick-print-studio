@@ -1,81 +1,42 @@
-// Jingle Bells' public-domain melody, synthesized locally with Web Audio.
-const MELODY: [number, number][] = [
-  [76, 1], [76, 1], [76, 2], [76, 1], [76, 1], [76, 2], [76, 1], [79, 1], [72, 1.5], [74, 0.5], [76, 4],
-  [77, 1], [77, 1], [77, 1.5], [77, 0.5], [77, 1], [76, 1], [76, 1], [76, 0.5], [76, 0.5], [76, 1], [74, 1], [74, 1], [76, 1], [74, 2], [79, 2],
-  [76, 1], [76, 1], [76, 2], [76, 1], [76, 1], [76, 2], [76, 1], [79, 1], [72, 1.5], [74, 0.5], [76, 4],
-  [77, 1], [77, 1], [77, 1], [77, 1], [77, 1], [76, 1], [76, 1], [76, 0.5], [76, 0.5], [79, 1], [79, 1], [77, 1], [74, 1], [72, 4],
-];
+import SantaAudio from "@/assets/santa-bells-first-10s.mp3.asset.json";
 
-const GREETINGS = [
-  "Ho ho ho! Maligayang Pasko!",
-  "Ho ho ho! Merry Christmas!",
-  "Maligayang Pasko, mga kaibigan!",
-] as const;
+export const SANTA_AUDIO_SECONDS = 10;
+
+// Distance is normalized: zero at the screen center, one at or beyond an edge.
+export function santaVolume(distance: number) {
+  const proximity = 1 - Math.min(1, Math.max(0, distance));
+  return 0.04 + 0.61 * proximity * proximity;
+}
 
 export class ChristmasSound {
-  private context: AudioContext | null = null;
-  private timer: ReturnType<typeof setTimeout> | undefined;
+  private audio: HTMLAudioElement | null = null;
   private generation = 0;
-  private greetingIndex = 0;
 
   async start() {
     this.stop();
     const generation = this.generation;
-    const context = new AudioContext();
-    this.context = context;
-    await context.resume();
-    if (this.generation !== generation || context.state !== "running") {
-      this.stop();
-      return false;
-    }
-    const phrase = () => {
-      if (this.generation !== generation || context.state !== "running") return;
-      let time = context.currentTime + 0.04;
-      for (const [note, beats] of MELODY) {
-        const duration = beats * 0.21;
-        for (const harmonic of [1, 2.76]) {
-          const oscillator = context.createOscillator();
-          const gain = context.createGain();
-          oscillator.type = "sine";
-          oscillator.frequency.value = 440 * Math.pow(2, (note - 69) / 12) * harmonic;
-          gain.gain.setValueAtTime(0, time);
-          gain.gain.linearRampToValueAtTime(harmonic === 1 ? 0.045 : 0.012, time + 0.006);
-          gain.gain.exponentialRampToValueAtTime(0.0001, time + Math.max(duration, 0.3));
-          oscillator.connect(gain).connect(context.destination);
-          oscillator.start(time);
-          oscillator.stop(time + Math.max(duration, 0.3) + 0.05);
-        }
-        time += duration;
-      }
-      this.timer = setTimeout(phrase, (time - context.currentTime) * 1000);
+    const audio = new Audio(SantaAudio.url);
+    this.audio = audio;
+    audio.loop = true;
+    audio.volume = santaVolume(1);
+    // Also enforce the limit in playback, independently of the trimmed file.
+    audio.ontimeupdate = () => {
+      if (audio.currentTime >= SANTA_AUDIO_SECONDS) audio.currentTime = 0;
     };
-    phrase();
-    return true;
+    await audio.play();
+    return this.generation === generation && !audio.paused;
   }
 
-  // Santa calls out as the sleigh passes, using the device's own voice.
-  greet() {
-    if (this.context?.state !== "running" || typeof speechSynthesis === "undefined" || document.hidden) return;
-    const text = GREETINGS[this.greetingIndex % GREETINGS.length] ?? GREETINGS[0];
-    this.greetingIndex += 1;
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = speechSynthesis.getVoices();
-    const voice = voices.find((v) => /^(fil|tl)(-|$)/i.test(v.lang))
-      ?? voices.find((v) => /^en(-|$)/i.test(v.lang));
-    if (voice) utterance.voice = voice;
-    utterance.lang = voice?.lang ?? "fil-PH";
-    utterance.rate = 0.9;
-    utterance.pitch = 0.6;
-    utterance.volume = 0.9;
-    speechSynthesis.speak(utterance);
+  setDistance(distance: number) {
+    if (this.audio) this.audio.volume = santaVolume(distance);
   }
 
   stop() {
-    this.generation++;
-    clearTimeout(this.timer);
-    if (typeof speechSynthesis !== "undefined") speechSynthesis.cancel();
-    if (this.context && this.context.state !== "closed") void this.context.close().catch(() => {});
-    this.context = null;
+    this.generation += 1;
+    if (!this.audio) return;
+    this.audio.pause();
+    this.audio.currentTime = 0;
+    this.audio.ontimeupdate = null;
+    this.audio = null;
   }
 }

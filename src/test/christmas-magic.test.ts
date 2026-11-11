@@ -1,30 +1,25 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { ChristmasSound } from "@/lib/christmas-magic";
+import { ChristmasSound, santaVolume, SANTA_AUDIO_SECONDS } from "@/lib/christmas-magic";
 
-afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+afterEach(() => vi.unstubAllGlobals());
 
-it("keeps Santa greetings silent until audio starts and after mute", async () => {
-  vi.useFakeTimers();
-  const speak = vi.fn();
-  vi.stubGlobal("speechSynthesis", { speak, cancel: vi.fn(), getVoices: () => [] });
-  vi.stubGlobal("SpeechSynthesisUtterance", class { constructor(public text: string) {} });
-  const param = { setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() };
-  vi.stubGlobal("AudioContext", class {
-    state = "running";
-    currentTime = 0;
-    destination = {};
-    async resume() {}
-    async close() { this.state = "closed"; }
-    createOscillator() { return { frequency: { value: 0 }, connect: (gain: unknown) => gain, start: vi.fn(), stop: vi.fn() }; }
-    createGain() { return { gain: param, connect: vi.fn() }; }
-  });
+it("limits the uploaded recording to the first 10 seconds", async () => {
+  const audio = { loop: false, volume: 1, currentTime: 0, paused: false,
+    ontimeupdate: null as (() => void) | null, play: vi.fn(async () => {}), pause: vi.fn() };
+  vi.stubGlobal("Audio", class { constructor() { return audio; } });
   const sound = new ChristmasSound();
-  sound.greet();
-  expect(speak).toHaveBeenCalledTimes(0);
   expect(await sound.start()).toBe(true);
-  sound.greet();
-  expect(speak).toHaveBeenCalledTimes(1);
+  expect(SANTA_AUDIO_SECONDS).toBe(10);
+  audio.currentTime = 10;
+  audio.ontimeupdate?.();
+  expect(audio.currentTime).toBe(0);
   sound.stop();
-  sound.greet();
-  expect(speak).toHaveBeenCalledTimes(1);
+  expect(audio.pause).toHaveBeenCalledTimes(1);
+});
+
+it("makes distant Santa quieter than nearby Santa", () => {
+  expect(santaVolume(1)).toBeCloseTo(0.04);
+  expect(santaVolume(0)).toBeCloseTo(0.65);
+  expect(santaVolume(0.5)).toBeGreaterThan(santaVolume(1));
+  expect(santaVolume(0.5)).toBeLessThan(santaVolume(0));
 });
