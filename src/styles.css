@@ -807,3 +807,21 @@
 .santa-sound-toggle:hover, .santa-fly-test:hover { transform: scale(1.08); background: oklch(0.38 0.1 25 / 0.95); }
 .santa-sound-toggle[aria-pressed="true"] { background: var(--gold); color: oklch(0.32 0.09 25); }
 .santa-fly-test { left: 64px; }
+
+/* Manual payment verification */
+.qr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 14px 0; }
+.qr-card { margin: 0; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--card); text-align: center; }
+.qr-card img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
+.qr-card figcaption { display: grid; gap: 2px; padding: 10px; }
+.qr-card figcaption strong { font-size: 15px; }
+.qr-card figcaption span { color: var(--gold); font-weight: 700; }
+.qr-card figcaption small { color: var(--muted-foreground); font-size: 12px; line-height: 1.4; }
+.payment-reference-form { display: grid; gap: 10px; margin-top: 14px; }
+.payment-reference-form label { font-weight: 600; font-size: 14px; }
+.proof-preview { max-width: 260px; border-radius: 12px; border: 1px solid var(--border); }
+.status-rejected { border-color: oklch(0.55 0.2 25); }
+.status-pending_verification { background: oklch(0.85 0.12 85); color: oklch(0.35 0.1 60); border-color: oklch(0.7 0.12 80); }
+.status-payment_verified, .status-completed { background: oklch(0.88 0.1 150); color: oklch(0.35 0.1 150); border-color: oklch(0.65 0.1 150); }
+.status-rejected, .status-failed { background: oklch(0.9 0.08 25); color: oklch(0.42 0.15 25); border-color: oklch(0.7 0.12 25); }
+.stat-amber { color: oklch(0.6 0.14 70); }
+.admin-note { color: oklch(0.45 0.12 25) !important; font-style: italic; }

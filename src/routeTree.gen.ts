@@ -20,6 +20,7 @@ import { Route as ManualPaymentRouteImport } from './routes/manual-payment'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SamplesRouteImport } from './routes/samples'
+import { Route as StaffRouteImport } from './routes/staff'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -80,6 +81,11 @@ const SamplesRoute = SamplesRouteImport.update({
   path: '/samples',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffRoute = StaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/samples': typeof SamplesRoute
+  '/staff': typeof StaffRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/samples': typeof SamplesRoute
+  '/staff': typeof StaffRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/samples': typeof SamplesRoute
+  '/staff': typeof StaffRoute
   '/terms': typeof TermsRoute
   '/track': typeof TrackRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/samples'
+    | '/staff'
     | '/terms'
     | '/track'
     | '/admin'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/samples'
+    | '/staff'
     | '/terms'
     | '/track'
     | '/admin'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/samples'
+    | '/staff'
     | '/terms'
     | '/track'
     | '/_authenticated/admin'
@@ -226,6 +238,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   SamplesRoute: typeof SamplesRoute
+  StaffRoute: typeof StaffRoute
   TermsRoute: typeof TermsRoute
   TrackRoute: typeof TrackRoute
   OrderReferenceRoute: typeof OrderReferenceRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SamplesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -372,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   SamplesRoute: SamplesRoute,
+  StaffRoute: StaffRoute,
   TermsRoute: TermsRoute,
   TrackRoute: TrackRoute,
   OrderReferenceRoute: OrderReferenceRoute,

@@ -11,3 +11,9 @@
 - [x] Photo creation now uses the built-in AI (Replicate removed).
 - [x] Staff "Test photo" and "Test Santa" buttons; restored premium slideshow and download tools from the backup.
 - [ ] Premium slideshow music: needs a song file from the owner.
+- [x] Manual payment verification system (Maya + GoTyme QR uploaded by owner): pending_verification status, reference number + optional screenshot, waiting screen.
+- [x] PIN-only staff login (owner-chosen PIN, stored hashed server-side) gating the /staff dashboard.
+- [x] Staff verification dashboard: pending/approved/rejected views, approve/reject buttons, new-payment alerts (15s poll + toast + browser notification).
+- [x] Mock Payment test mode (development only) verified end-to-end in the preview.
+- [x] Order records tagged with company label "JIS Company".
+- [ ] GCash QR: owner sent Maya + GoTyme only; swap in a GCash QR if provided.

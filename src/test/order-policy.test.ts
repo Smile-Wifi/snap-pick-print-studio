@@ -16,4 +16,9 @@ describe("Pasko order rules", () => {
     expect(canGenerateOrder("processing", null)).toBe(false);
     expect(canGenerateOrder("payment_verified", "2026-01-01T00:00:00.000Z")).toBe(true);
   });
+
+  it("blocks photo creation while payment awaits verification or was rejected", () => {
+    expect(canGenerateOrder("pending_verification", null)).toBe(false);
+    expect(canGenerateOrder("rejected", null)).toBe(false);
+  });
 });

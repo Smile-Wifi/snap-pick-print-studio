@@ -44,9 +44,11 @@ export type TemplateId = (typeof STYLES)[number]["key"];
 export const PAYMENT_METHODS = { gcash: "GCash", maya: "Maya", bank: "Bank transfer" } as const;
 export const STATUS_LABEL: Record<string, string> = {
   pending_payment: "Pending payment",
+  pending_verification: "Waiting for verification",
   payment_verified: "Payment verified",
   processing: "Creating your photos",
   completed: "Photos ready",
+  rejected: "Payment rejected",
   failed: "Needs attention",
 };
 

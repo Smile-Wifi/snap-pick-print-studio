@@ -37,6 +37,7 @@ export type Database = {
           access_token: string
           admin_note: string | null
           amount: number
+          company: string
           created_at: string
           email: string | null
           expires_at: string
@@ -47,6 +48,7 @@ export type Database = {
           package: string
           payment_method: string
           payment_reference: string | null
+          payment_screenshot_path: string | null
           payment_verified_at: string | null
           reference: string
           result_paths: string[]
@@ -58,6 +60,7 @@ export type Database = {
           access_token?: string
           admin_note?: string | null
           amount: number
+          company?: string
           created_at?: string
           email?: string | null
           expires_at?: string
@@ -68,6 +71,7 @@ export type Database = {
           package: string
           payment_method: string
           payment_reference?: string | null
+          payment_screenshot_path?: string | null
           payment_verified_at?: string | null
           reference: string
           result_paths?: string[]
@@ -79,6 +83,7 @@ export type Database = {
           access_token?: string
           admin_note?: string | null
           amount?: number
+          company?: string
           created_at?: string
           email?: string | null
           expires_at?: string
@@ -89,6 +94,7 @@ export type Database = {
           package?: string
           payment_method?: string
           payment_reference?: string | null
+          payment_screenshot_path?: string | null
           payment_verified_at?: string | null
           reference?: string
           result_paths?: string[]
@@ -212,6 +218,8 @@ export type Database = {
         | "processing"
         | "completed"
         | "failed"
+        | "pending_verification"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -346,6 +354,8 @@ export const Constants = {
         "processing",
         "completed",
         "failed",
+        "pending_verification",
+        "rejected",
       ],
     },
   },

@@ -110,6 +110,41 @@ export const submitPaymentReference = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const submitPaymentProof = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => lookupSchema.extend({
+    paymentReference: z.string().trim().min(4).max(60),
+    screenshot: z.string().max(12_000_000).optional(),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { decodeDataUrl, ORDER_BUCKET } = await import("@/server/storage.server");
+    const { data: order } = await supabaseAdmin.from("orders").select("id, access_token, status").eq("reference", data.reference).maybeSingle();
+    if (!order || order.access_token !== data.token) throw new Error("Order not found.");
+    if (!["pending_payment", "rejected"].includes(order.status)) throw new Error("This order is no longer waiting for payment.");
+
+    let screenshotPath: string | null = null;
+    if (data.screenshot) {
+      const { bytes, type } = decodeDataUrl(data.screenshot);
+      if (!["image/jpeg", "image/png", "image/webp"].includes(type) || bytes.length > 8 * 1024 * 1024) throw new Error("Choose a JPG, PNG or WEBP screenshot up to 8 MB.");
+      screenshotPath = `payments/${data.reference}-${crypto.randomUUID()}.${type === "image/png" ? "png" : type === "image/webp" ? "webp" : "jpg"}`;
+      const { error: uploadError } = await supabaseAdmin.storage.from(ORDER_BUCKET).upload(screenshotPath, bytes, { contentType: type });
+      if (uploadError) throw new Error("The payment screenshot could not be saved.");
+    }
+
+    const { error } = await supabaseAdmin.from("orders").update({
+      payment_reference: data.paymentReference,
+      payment_screenshot_path: screenshotPath,
+      status: "pending_verification",
+      admin_note: null,
+      updated_at: new Date().toISOString(),
+    }).eq("id", order.id);
+    if (error) {
+      if (screenshotPath) await supabaseAdmin.storage.from(ORDER_BUCKET).remove([screenshotPath]);
+      throw new Error("We couldn't save your payment. Please try again.");
+    }
+    return { ok: true };
+  });
+
 export const trackOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ reference: referenceSchema, mobile: z.string().regex(/^\+639\d{9}$/) }).parse(input))
   .handler(async ({ data }) => {

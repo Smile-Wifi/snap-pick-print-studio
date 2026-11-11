@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, CheckCircle2, Clock3, Copy, Download, ExternalLink, Image, LockKeyhole, Send } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { ArrowLeft, CheckCircle2, Clock3, Copy, Download, ExternalLink, Image, LockKeyhole, Send, XCircle } from "lucide-react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { packages, peso, STATUS_LABEL } from "@/lib/pasko-content";
 import { Slideshow } from "@/components/order/Slideshow";
-import { getCustomerOrder, submitPaymentReference } from "@/lib/orders.functions";
+import { getCustomerOrder, submitPaymentProof } from "@/lib/orders.functions";
+import MayaQr from "@/assets/maya-qr.jpeg.asset.json";
+import GotymeQr from "@/assets/gotyme-qr.jpeg.asset.json";
 
 export const Route = createFileRoute("/order/$reference")({
   validateSearch: (search: Record<string, unknown>) => ({ t: typeof search["t"] === "string" ? search["t"] : "" }),
@@ -24,33 +26,61 @@ export const Route = createFileRoute("/order/$reference")({
   component: OrderPage,
 });
 
+const QR_OPTIONS = [
+  { key: "maya", name: "Maya", image: MayaQr.url },
+  { key: "gotyme", name: "GoTyme Bank", image: GotymeQr.url },
+] as const;
+
 function OrderPage() {
   const { reference } = Route.useParams();
   const { t } = Route.useSearch();
   const order = Route.useLoaderData();
-  const paymentSettings = order?.paymentSettings;
-  const submitPayment = useServerFn(submitPaymentReference);
+  const submitPayment = useServerFn(submitPaymentProof);
   const [paymentReference, setPaymentReference] = useState(order?.paymentReference ?? "");
+  const [screenshot, setScreenshot] = useState("");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!order || order.status === "completed") return undefined;
+    if (!order || order.status === "completed" || order.status === "rejected") return undefined;
     const interval = window.setInterval(() => window.location.reload(), 45_000);
     return () => window.clearInterval(interval);
   }, [order]);
 
-  async function saveReference(event: FormEvent) {
-    event.preventDefault();
-    if (!t || paymentReference.trim().length < 4) { toast.error("Enter the payment reference number."); return; }
+  async function selectScreenshot(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 8 * 1024 * 1024) {
+      toast.error("Choose a JPG, PNG or WEBP screenshot up to 8 MB.");
+      event.currentTarget.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string" && setScreenshot(reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  async function sendPayment(referenceValue: string) {
+    if (!t || referenceValue.trim().length < 4) { toast.error("Enter the payment reference number."); return; }
     setSaving(true);
     try {
-      await submitPayment({ data: { reference, token: t, paymentReference: paymentReference.trim() } });
-      toast.success("Payment reference saved.");
+      await submitPayment({ data: { reference, token: t, paymentReference: referenceValue.trim(), screenshot: screenshot || undefined } });
+      toast.success("Payment sent for verification.");
       window.location.reload();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "The reference could not be saved.");
+      toast.error(error instanceof Error ? error.message : "The payment could not be saved.");
     } finally { setSaving(false); }
+  }
+
+  async function saveReference(event: FormEvent) {
+    event.preventDefault();
+    await sendPayment(paymentReference);
+  }
+
+  async function mockPayment() {
+    const fake = `MOCK-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    setPaymentReference(fake);
+    await sendPayment(fake);
   }
 
   async function copyOrderReference() {
@@ -60,8 +90,8 @@ function OrderPage() {
 
   if (!order) return <div className="create-page"><SiteHeader /><main className="content-page"><section className="content-section"><h1 className="section-heading">Order not found</h1><p className="section-lede">This private order link is invalid. Use your order number and mobile number to find the order.</p><Button asChild><Link to="/track">Find my order</Link></Button></section></main><SiteFooter /></div>;
 
-  const paymentInstructions = paymentSettings?.[order.paymentMethod] ?? "";
   const status = STATUS_LABEL[order.status] ?? "Order received";
+  const awaitingPayment = order.status === "pending_payment" || order.status === "rejected";
   return <div className="create-page"><SiteHeader /><main className="content-page order-page">
     <Link to="/track" className="back-link"><ArrowLeft size={16} /> Track another order</Link>
     <div className="order-page-heading"><span className="status-icon"><CheckCircle2 /></span><div><p className="summary-label">Order status</p><h1>{status}</h1></div></div>
@@ -74,12 +104,31 @@ function OrderPage() {
         <h2 className="step-heading">Your package</h2>
         <div className="order-package-line"><span>{packages[order.pkg].name}</span><strong>{peso(order.amount)}</strong></div>
         <p className="upload-tip">{packages[order.pkg].details} · {order.fullName}</p>
-        <h2 className="step-heading">Payment instructions</h2>
-        {order.status === "pending_payment" ? <>
-          <div className="preview-note"><LockKeyhole size={16} /> Transfer the exact amount of <strong>{peso(order.amount)}</strong> using the instructions below. The studio reviews your payment before preparing photos.</div>
-          {paymentInstructions ? <div className="payment-instructions"><p>{paymentInstructions}</p></div> : <p className="payment-unavailable">Payment details for this method are not confirmed yet. Please contact the studio and include your order number.</p>}
-          <form className="payment-reference-form" onSubmit={saveReference}><label htmlFor="payment-reference">Payment reference number</label><div className="reference-input-row"><Input id="payment-reference" minLength={4} maxLength={60} value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="Enter your transfer reference" required /><Button type="submit" disabled={saving}>{saving ? "Saving…" : "Submit reference"}<Send /></Button></div></form>
-        </> : <div className="status-message"><Clock3 size={20} /><div><strong>{status}</strong><p>{order.paymentReference ? `Payment reference: ${order.paymentReference}` : "We'll update this page after your payment is reviewed."}</p></div></div>}
+
+        {awaitingPayment && <>
+          <h2 className="step-heading">Pay {peso(order.amount)} with Maya or GoTyme</h2>
+          {order.status === "rejected" && <div className="status-message status-rejected"><XCircle size={20} /><div><strong>Your payment was not verified</strong><p>{order.paymentReference ? `Reference submitted: ${order.paymentReference}. ` : ""}Please check the amount and reference number, then submit again.</p></div></div>}
+          <div className="preview-note"><LockKeyhole size={16} /> Scan one QR code and send the exact amount of <strong>{peso(order.amount)}</strong>. Then enter your reference number below.</div>
+          <div className="qr-grid">
+            {QR_OPTIONS.map((option) => <figure key={option.key} className="qr-card">
+              <img src={option.image} alt={`${option.name} QR code`} loading="lazy" />
+              <figcaption><strong>{option.name}</strong><span>{peso(order.amount)}</span><small>Scan this QR, then enter your Reference Number below.</small></figcaption>
+            </figure>)}
+          </div>
+          <form className="payment-reference-form" onSubmit={saveReference}>
+            <label htmlFor="payment-reference">Payment reference number</label>
+            <div className="reference-input-row"><Input id="payment-reference" minLength={4} maxLength={60} value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="Enter your transfer reference" required /></div>
+            <label htmlFor="payment-screenshot">Screenshot of payment (optional)</label>
+            <div className="reference-input-row"><Input id="payment-screenshot" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void selectScreenshot(event)} /></div>
+            {screenshot && <img className="proof-preview" src={screenshot} alt="Payment screenshot preview" />}
+            <Button type="submit" className="w-full" disabled={saving}>{saving ? "Sending…" : "I have paid – Submit Reference"}<Send /></Button>
+            {import.meta.env.DEV && <Button type="button" variant="outline" className="w-full" disabled={saving} onClick={() => void mockPayment()}>Mock Payment (Test Mode)</Button>}
+          </form>
+        </>}
+
+        {order.status === "pending_verification" && <div className="status-message"><Clock3 size={20} /><div><strong>Waiting for verification</strong><p>Order {order.reference} · Reference {order.paymentReference}. The studio usually reviews payments within a few hours. This page updates automatically.</p></div></div>}
+
+        {!awaitingPayment && order.status !== "pending_verification" && <div className="status-message"><Clock3 size={20} /><div><strong>{status}</strong><p>{order.paymentReference ? `Payment reference: ${order.paymentReference}` : "We'll update this page after your payment is reviewed."}</p></div></div>}
       </section>
       <aside className="order-photo-aside">
         <h2 className="step-heading"><Image size={19} /> Your photos</h2>
