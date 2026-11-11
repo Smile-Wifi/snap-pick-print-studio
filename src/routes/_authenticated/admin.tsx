@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Clock3, ImagePlus, LogOut, RefreshCw, Save, Search, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Check, Clock3, LogOut, RefreshCw, Save, Search, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ function AdminPage() {
   const [status, setStatus] = useState<(typeof statusFilter)[number]>("all");
   const [workingId, setWorkingId] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [prices, setPrices] = useState({ ...DEFAULT_PRICES });
+  const [prices, setPrices] = useState<{ basic: number; premium: number }>({ ...DEFAULT_PRICES });
   const [accounts, setAccounts] = useState({ gcash: "", maya: "", bank: "" });
   const [retentionDays, setRetentionDays] = useState(30);
   const [isStaff, setIsStaff] = useState<boolean | null>(null);

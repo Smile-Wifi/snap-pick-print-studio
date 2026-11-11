@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, ArrowRight, Camera, Check, ImagePlus, LockKeyhole, Music, X } from "lucide-react";
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,27 +102,27 @@ function CreatePage() {
     void choosePhoto(event.dataTransfer.files[0]);
   }
 
-  async function continueOrSubmit(event: React.FormEvent) {
+  async function continueOrSubmit(event: FormEvent) {
     event.preventDefault();
     if (step === 1) {
-      if (!photo) return toast.error("Choose one photo to continue.");
+      if (!photo) { toast.error("Choose one photo to continue."); return; }
       setStep(2);
       return;
     }
     if (step === 2) {
-      if (pkg === "basic" && !styleKey) return toast.error("Choose your first template.");
+      if (pkg === "basic" && !styleKey) { toast.error("Choose your first template."); return; }
       setStep(3);
       return;
     }
-    if (!photo || fullName.trim().length < 2) return toast.error("Enter your name and choose a photo.");
+    if (!photo || fullName.trim().length < 2) { toast.error("Enter your name and choose a photo."); return; }
     const normalizedMobile = normalizePhMobile(mobile);
-    if (!normalizedMobile) return toast.error("Enter a valid Philippine mobile number.");
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("Enter a valid email address or leave it blank.");
+    if (!normalizedMobile) { toast.error("Enter a valid Philippine mobile number."); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast.error("Enter a valid email address or leave it blank."); return; }
     setBusy(true);
     try {
       const result = await submitOrder({ data: {
         fullName: fullName.trim(), mobile: normalizedMobile, email: email.trim(), pkg,
-        template: pkg === "premium" ? "santa" : (chosenStyle?.key ?? "santa"), paymentMethod: method, photo: photo.dataUrl,
+      template: pkg === "premium" ? "santa" : (chosenStyle?.key ?? "santa"), paymentMethod: method, photo: photo.dataUrl,
       } });
       navigate({ to: "/order/$reference", params: { reference: result.reference }, search: { t: result.token } });
     } catch (error) {
@@ -186,7 +186,7 @@ function CreatePage() {
           <p className="summary-label">Order summary</p>
           <div className="summary-item"><span className="summary-icon">{pkg === "premium" ? <Music /> : <Camera />}</span><div><strong>{packages[pkg].name}</strong><span>{packages[pkg].details}</span><span>{pkg === "premium" ? "All five styles" : chosenStyle?.name ?? "First template not selected"}</span></div></div>
           <div className="summary-total"><span>Total</span><strong>{peso(amount)}</strong></div>
-          <div className="package-switch"><Button type="button" variant="outline" size="sm" aria-pressed={pkg === "basic"} onClick={() => setPkg("basic")}>Basic · ₱{DEFAULT_PRICES.basic}</Button><Button type="button" variant="outline" size="sm" aria-pressed={pkg === "premium"} onClick={() => setPkg("premium")}>With music · ₱{DEFAULT_PRICES.premium}</Button></div>
+          <div className="package-switch"><Button type="button" variant="outline" size="sm" aria-pressed={pkg === "basic"} onClick={() => setPkg("basic")}>Basic · {peso(pricing.basic)}</Button><Button type="button" variant="outline" size="sm" aria-pressed={pkg === "premium"} onClick={() => setPkg("premium")}>With music · {peso(pricing.premium)}</Button></div>
           <p className="summary-privacy"><LockKeyhole size={12} className="inline-block align-middle" /> Private upload · Deleted after 30 days</p>
         </aside>
       </form>

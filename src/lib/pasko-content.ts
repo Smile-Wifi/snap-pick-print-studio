@@ -21,6 +21,8 @@ export const packages = {
 
 export type PackageId = keyof typeof packages;
 
+export const DEFAULT_PRICES = { basic: 99, premium: 149 } as const;
+
 export const photoStyles = [
   { key: "santa", name: "Simbang Gabi", detail: "A warm Filipino Christmas tradition", image: SantaStyle.url },
   { key: "winter", name: "Snow", detail: "A cozy winter wonderland", image: WinterStyle.url },

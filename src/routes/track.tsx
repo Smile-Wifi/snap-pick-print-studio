@@ -29,11 +29,11 @@ function TrackPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     const normalizedMobile = normalizePhMobile(mobile);
-    if (!normalizedMobile) return toast.error("Enter the Philippine mobile number used for the order.");
+    if (!normalizedMobile) { toast.error("Enter the Philippine mobile number used for the order."); return; }
     setBusy(true);
     try {
       const order = await lookup({ data: { reference: reference.trim().toUpperCase(), mobile: normalizedMobile } });
-      if (!order) return toast.error("No order matched those details.");
+      if (!order) { toast.error("No order matched those details."); return; }
       await navigate({ to: "/order/$reference", params: { reference: order.reference }, search: { t: order.token } });
     } catch (error) { toast.error(error instanceof Error ? error.message : "We couldn't find your order."); }
     finally { setBusy(false); }
