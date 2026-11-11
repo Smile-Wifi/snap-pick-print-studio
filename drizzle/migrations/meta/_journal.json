@@ -8,6 +8,13 @@
       "when": 1794383998710,
       "tag": "0000_create_pasko_order_admin_data",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794385511167,
+      "tag": "0001_protect_pasko_private_storage",
+      "breakpoints": true
     }
   ]
 }

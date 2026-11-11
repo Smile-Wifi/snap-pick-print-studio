@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getSettings, decodeDataUrl, ORDER_BUCKET } from "@/server/storage.server";
 
 const submitPaymentInput = z.object({
   customerName: z.string().trim().min(2).max(100),
@@ -18,6 +17,7 @@ export const submitManualPayment = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => submitPaymentInput.parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getSettings, decodeDataUrl, ORDER_BUCKET } = await import("@/server/storage.server");
     const settings = await getSettings();
     const method = data.paymentMethod === "bank" ? "bank" : "gcash";
     if (!settings.payment[method]) throw new Error("Payment instructions are not available yet.");

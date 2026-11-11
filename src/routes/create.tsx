@@ -1,207 +1,196 @@
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Camera, Check, ImagePlus, LockKeyhole, Music2, X } from "lucide-react";
-
+import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, ArrowRight, Camera, Check, ImagePlus, LockKeyhole, Music, X } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { howItWorks, packages, photoStyles } from "@/lib/pasko-content";
-import ChristmasHero from "@/assets/pasko-christmas-studio.jpg.asset.json";
-import { SiteHeader, SiteFooter } from "@/components/pasko-layout";
-
-type Step = 1 | 2 | 3 | 4;
-type PaymentChoice = "gcash" | "maya" | "bank";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
+import { DEFAULT_PRICES, normalizePhMobile, packages, photoStyles, peso, type PackageId } from "@/lib/pasko-content";
+import { getSiteData, createOrder } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/create")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    pkg: search["pkg"] === "premium" ? "premium" : "basic",
-  }),
-  head: () => ({
-    meta: [
-      { title: "Create Your Christmas Photos | Pasko Photo Magic" },
-      { name: "description", content: "Choose a Christmas package and upload one photo to start your Pasko Photo Magic order." },
-      { property: "og:title", content: "Create Your Christmas Photos | Pasko Photo Magic" },
-      { property: "og:description", content: "Choose a Christmas package and upload one photo to start your holiday portrait order." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  validateSearch: (search: Record<string, unknown>) => ({ pkg: search["pkg"] === "premium" ? "premium" as const : "basic" as const }),
+  loader: () => getSiteData(),
+  head: () => ({ meta: [
+    { title: "Create Christmas Photos | Pasko Photo Magic" },
+    { name: "description", content: "Upload one photo, select a package and receive five Christmas portraits in the styles you choose." },
+    { property: "og:title", content: "Create Christmas Photos | Pasko Photo Magic" },
+    { property: "og:description", content: "One photo becomes five Christmas portraits." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: CreatePage,
 });
 
-const stepNames = ["Upload photo", "Choose template", "Payment", "Generate 5 photos"];
-const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-const fileSizeLimit = 10 * 1024 * 1024;
+type PhotoChoice = { dataUrl: string; preview: string; name: string; size: number };
+type Method = "gcash" | "maya" | "bank";
+const methods: Method[] = ["gcash", "maya", "bank"];
 
-function CreatePage() {
-  const { pkg } = Route.useSearch();
-  const currentPackage = packages[pkg];
-  const selectedStyleName = photoStyles[selectedStyle]?.name ?? photoStyles[0]?.name ?? "Simbang Gabi";
-  const navigate = useNavigate();
-  const fileInput = useRef<HTMLInputElement>(null);
-  const cameraInput = useRef<HTMLInputElement>(null);
-  const [step, setStep] = useState<Step>(1);
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState("");
-  const [selectedStyle, setSelectedStyle] = useState(0);
-  const [payment, setPayment] = useState<PaymentChoice>("gcash");
-  const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!photo) {
-      setPhotoPreview("");
-      return;
-    }
-    const objectUrl = URL.createObjectURL(photo);
-    setPhotoPreview(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [photo]);
-
-  const selectPhoto = (file?: File) => {
-    if (!file) return;
-    if (!allowedTypes.includes(file.type)) {
-      setError("Please choose a JPG, PNG or WEBP photo.");
-      return;
-    }
-    if (file.size > fileSizeLimit) {
-      setError("Your photo must be 10 MB or smaller.");
-      return;
-    }
-    setError("");
-    setPhoto(file);
-  };
-
-  const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    selectPhoto(event.currentTarget.files?.[0]);
-    event.currentTarget.value = "";
-  };
-
-  const onDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    selectPhoto(event.dataTransfer.files[0]);
-  };
-
-  const continueOrder = () => {
-    if (step === 1 && photo) setStep(2);
-    else if (step === 2) setStep(3);
-    else if (step === 3) setStep(4);
-  };
-
-  return (
-    <div className="create-page">
-      <SiteHeader />
-      <main className="create-main">
-        <div className="create-layout">
-          <section aria-live="polite">
-            <h1 className="create-title">Create your Christmas magic 🎄</h1>
-            <p className="create-subtitle">One upload. Five magical Christmas photos!</p>
-            <div className="steps-progress" aria-label={`Step ${step} of 4`}>
-              {stepNames.map((name, index) => (
-                <span key={name} className={index + 1 === step ? "is-current" : index + 1 < step ? "is-complete" : ""}>
-                  {name}
-                </span>
-              ))}
-            </div>
-
-            {step === 1 && (
-              <section aria-labelledby="upload-heading">
-                <h2 className="step-heading" id="upload-heading"><span className="step-number">1</span> Upload your photo</h2>
-                <div
-                  className={`upload-zone${isDragging ? " is-dragging" : ""}`}
-                  onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={onDrop}
-                >
-                  {photo && photoPreview ? (
-                    <div className="upload-content">
-                      <img className="photo-preview" src={photoPreview} alt="Selected photo preview" />
-                      <strong>{photo.name}</strong>
-                      <p>{(photo.size / 1024 / 1024).toFixed(1)} MB · One photo selected</p>
-                      <Button variant="outline" size="sm" onClick={() => { setPhoto(null); setError(""); }}><X /> Remove photo</Button>
-                    </div>
-                  ) : (
-                    <div className="upload-content">
-                      <span className="upload-icon"><Camera size={30} /></span>
-                      <strong>Upload ONE photo</strong>
-                      <p>Drag &amp; drop here, or choose below. JPG, PNG or WEBP · up to 10MB</p>
-                      <div className="upload-actions">
-                        <Button onClick={() => fileInput.current?.click()}><ImagePlus /> Choose photo</Button>
-                        <Button variant="outline" onClick={() => cameraInput.current?.click()}><Camera /> Take a photo</Button>
-                      </div>
-                      <input ref={fileInput} className="file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={onFileChange} aria-label="Choose one photo" />
-                      <input ref={cameraInput} className="file-input" type="file" accept="image/jpeg,image/png,image/webp" capture="user" onChange={onFileChange} aria-label="Take a photo" />
-                    </div>
-                  )}
-                </div>
-                {error && <p className="upload-error" role="alert">{error}</p>}
-                <p className="upload-tip">Tip: a clear, front-facing photo gives the best results. Only one photo per order.</p>
-              </section>
-            )}
-
-            {step === 2 && (
-              <section aria-labelledby="template-heading">
-                <h2 className="step-heading" id="template-heading"><span className="step-number">2</span> Choose your first template</h2>
-                <div className="template-grid">
-                  {photoStyles.map((style, index) => (
-                    <button key={style.name} className="template-option" type="button" aria-pressed={selectedStyle === index} onClick={() => setSelectedStyle(index)}>
-                      {style.name}<span>{style.detail}</span>
-                    </button>
-                  ))}
-                </div>
-                <img className="template-preview" src={ChristmasHero.url} alt="Illustrative Christmas photo transformations" />
-                <p className="upload-tip">Your order includes all five Christmas styles.</p>
-                <div className="step-buttons"><Button variant="outline" onClick={() => setStep(1)}><ArrowLeft /> Back</Button><Button onClick={continueOrder}>Continue to payment <ArrowRight /></Button></div>
-              </section>
-            )}
-
-            {step === 3 && (
-              <section aria-labelledby="payment-heading">
-                <h2 className="step-heading" id="payment-heading"><span className="step-number">3</span> Choose a payment method</h2>
-                <div className="payment-options">
-                  {(["gcash", "maya", "bank"] as const).map((option) => (
-                    <button key={option} className="payment-option" type="button" aria-pressed={payment === option} onClick={() => setPayment(option)}>
-                      <span aria-hidden="true">{payment === option ? "◉" : "○"}</span>
-                      {option === "gcash" ? "GCash" : option === "maya" ? "Maya" : "Bank transfer"}
-                    </button>
-                  ))}
-                </div>
-                <div className="preview-note">This is a visual recreation. Payment processing and photo generation are not connected, so no payment will be taken.</div>
-                <div className="step-buttons"><Button variant="outline" onClick={() => setStep(2)}><ArrowLeft /> Back</Button><Button onClick={continueOrder}>Review order <ArrowRight /></Button></div>
-              </section>
-            )}
-
-            {step === 4 && (
-              <section className="step-complete" aria-labelledby="review-heading">
-                <span className="step-complete-icon"><Check /></span>
-                <h2 id="review-heading">Your order is ready to review</h2>
-                <p>{photo?.name} · {selectedStyleName} · {payment === "bank" ? "Bank transfer" : payment === "gcash" ? "GCash" : "Maya"}</p>
-                <div className="preview-note">The original app requires payment verification before photos are generated. This recreation does not submit payment or upload your photo.</div>
-                <div className="step-buttons"><Button variant="outline" onClick={() => setStep(3)}><ArrowLeft /> Back</Button><Button variant="secondary" onClick={() => { setStep(1); setPhoto(null); }}>Start over</Button></div>
-              </section>
-            )}
-          </section>
-
-          <aside className="order-summary" aria-label="Order summary">
-            <p className="summary-label">Order summary</p>
-            <div className="summary-item">
-              <span className="summary-icon">{pkg === "premium" ? <Music2 /> : <Camera />}</span>
-              <div><strong>{currentPackage.name}</strong><span>{currentPackage.summary} · {payment === "gcash" ? "GCash" : payment === "maya" ? "Maya" : "Bank transfer"}</span></div>
-            </div>
-            <div className="summary-total"><span>Total</span><strong>₱{currentPackage.price}</strong></div>
-            {step === 1 ? (
-              <Button className="summary-next" disabled={!photo} onClick={continueOrder}>Choose template <ArrowRight /></Button>
-            ) : (
-              <Button className="summary-next" variant="secondary" onClick={() => navigate({ to: "/", hash: "pricing" })}>Change package</Button>
-            )}
-            <p className="summary-privacy"><LockKeyhole size={12} className="inline-block align-middle" /> Private &amp; secure · Auto-deleted after 30 days</p>
-          </aside>
-        </div>
-      </main>
-      <SiteFooter />
-    </div>
-  );
+async function preparePhoto(file: File) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Choose a JPG, PNG or WEBP photo.");
+  if (file.size > 10 * 1024 * 1024) throw new Error("Your photo must be 10 MB or smaller.");
+  if (file.size < 10 * 1024) throw new Error("This photo is too small. Please choose a clearer image.");
+  const raw = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Could not read this photo."));
+    reader.onerror = () => reject(new Error("Could not read this photo."));
+    reader.readAsDataURL(file);
+  });
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const element = new Image();
+    element.onload = () => resolve(element);
+    element.onerror = () => reject(new Error("This file is not a valid image."));
+    element.src = raw;
+  });
+  if (image.width < 256 || image.height < 256) throw new Error("Choose a photo at least 256 × 256 pixels.");
+  const scale = Math.min(1, 2048 / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(image.width * scale);
+  canvas.height = Math.round(image.height * scale);
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("This photo could not be prepared.");
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+  return { dataUrl, preview: URL.createObjectURL(file), name: file.name, size: file.size };
 }
 
-export function HowItWorksList() {
-  return <ol>{howItWorks.map((item, index) => <li key={item.title}>{index + 1}. <strong>{item.title}</strong> — {item.detail}</li>)}</ol>;
+function CreatePage() {
+  const { pkg: initialPackage } = Route.useSearch();
+  const [pkg, setPkg] = useState<PackageId>(initialPackage);
+  const [step, setStep] = useState(1);
+  const [photo, setPhoto] = useState<PhotoChoice | null>(null);
+  const [styleKey, setStyleKey] = useState<string | null>(null);
+  const [method, setMethod] = useState<Method>("gcash");
+  const [fullName, setFullName] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [fileError, setFileError] = useState("");
+  const picker = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const submitOrder = useServerFn(createOrder);
+  const site = Route.useLoaderData();
+  const pricing = site.pricing;
+  const amount = pricing[pkg];
+  const selectedIndex = photoStyles.findIndex((style) => style.key === styleKey);
+  const chosenStyle = photoStyles[selectedIndex >= 0 ? selectedIndex : 0];
+
+  useEffect(() => () => { if (photo?.preview) URL.revokeObjectURL(photo.preview); }, [photo]);
+
+  async function choosePhoto(file?: File) {
+    if (!file) return;
+    try {
+      setFileError("");
+      setPhoto(await preparePhoto(file));
+    } catch (error) {
+      setFileError(error instanceof Error ? error.message : "This photo could not be opened.");
+    }
+  }
+
+  function onFileChange(event: ChangeEvent<HTMLInputElement>) {
+    void choosePhoto(event.currentTarget.files?.[0]);
+    event.currentTarget.value = "";
+  }
+
+  function onDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    void choosePhoto(event.dataTransfer.files[0]);
+  }
+
+  async function continueOrSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (step === 1) {
+      if (!photo) return toast.error("Choose one photo to continue.");
+      setStep(2);
+      return;
+    }
+    if (step === 2) {
+      if (pkg === "basic" && !styleKey) return toast.error("Choose your first template.");
+      setStep(3);
+      return;
+    }
+    if (!photo || fullName.trim().length < 2) return toast.error("Enter your name and choose a photo.");
+    const normalizedMobile = normalizePhMobile(mobile);
+    if (!normalizedMobile) return toast.error("Enter a valid Philippine mobile number.");
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("Enter a valid email address or leave it blank.");
+    setBusy(true);
+    try {
+      const result = await submitOrder({ data: {
+        fullName: fullName.trim(), mobile: normalizedMobile, email: email.trim(), pkg,
+        template: pkg === "premium" ? "santa" : (chosenStyle?.key ?? "santa"), paymentMethod: method, photo: photo.dataUrl,
+      } });
+      navigate({ to: "/order/$reference", params: { reference: result.reference }, search: { t: result.token } });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Your order could not be saved.");
+      setBusy(false);
+    }
+  }
+
+  const stepLabels = ["Upload photo", "Choose a style", "Your details"];
+  return <div className="create-page">
+    <SiteHeader />
+    <main className="create-main">
+      <form className="create-layout" onSubmit={continueOrSubmit}>
+        <section aria-live="polite">
+          <h1 className="create-title">Create your Christmas magic</h1>
+          <p className="create-subtitle">One photo. Five joyful portraits.</p>
+          <ol className="steps-progress" aria-label={`Step ${step} of 3`}>{stepLabels.map((label, index) => <li key={label} className={step === index + 1 ? "is-current" : step > index + 1 ? "is-complete" : ""}><span>{step > index + 1 ? <Check size={13} /> : index + 1}</span>{label}</li>)}</ol>
+
+          {step === 1 && <section>
+            <h2 className="step-heading"><span className="step-number">1</span> Upload your photo</h2>
+            <div className={`upload-zone${dragging ? " is-dragging" : ""}`} onDragOver={(event) => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop}>
+              <input ref={picker} className="file-input" type="file" accept="image/jpeg,image/png,image/webp" onChange={onFileChange} aria-label="Choose one photo" />
+              <input ref={camera} className="file-input" type="file" accept="image/*" capture="environment" onChange={onFileChange} aria-label="Take a photo" />
+              {photo ? <div className="upload-content">
+                <img className="photo-preview" src={photo.preview} alt="Your selected photo" />
+                <strong>{photo.name}</strong><p>{(photo.size / 1024 / 1024).toFixed(1)} MB · One photo selected</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => setPhoto(null)}><X /> Remove photo</Button>
+              </div> : <div className="upload-content">
+                <span className="upload-icon"><Camera size={30} /></span><strong>Upload ONE photo</strong>
+                <p>Drag &amp; drop here, or choose below. JPG, PNG or WEBP · up to 10 MB</p>
+                <div className="upload-actions"><Button type="button" onClick={() => picker.current?.click()}><ImagePlus /> Choose photo</Button><Button type="button" variant="outline" onClick={() => camera.current?.click()}><Camera /> Take a photo</Button></div>
+              </div>}
+            </div>
+            {fileError && <p className="upload-error" role="alert">{fileError}</p>}
+            <p className="upload-tip">A clear, front-facing photo helps keep every face true to the original.</p>
+          </section>}
+
+          {step === 2 && <section>
+            <h2 className="step-heading"><span className="step-number">2</span>{pkg === "premium" ? "Your five Christmas styles" : "Choose your first template"}</h2>
+            <p className="section-lede">{pkg === "premium" ? "All five styles are included in Magic with Music." : "All five photos are included. Pick which style you would like first."}</p>
+            <div className="template-grid">{photoStyles.map((style) => <Button key={style.key} type="button" variant="outline" aria-pressed={pkg === "premium" || styleKey === style.key} className="template-option" onClick={() => setStyleKey(style.key)}>
+              <img src={style.image} alt="" /><span className="template-name">{style.name}</span><span>{style.detail}</span>{(pkg === "premium" || styleKey === style.key) && <Check className="template-check" size={18} />}
+            </Button>)}</div>
+            <div className="step-buttons"><Button type="button" variant="outline" onClick={() => setStep(1)}><ArrowLeft /> Back</Button><Button type="button" onClick={() => { if (pkg === "basic" && !styleKey) toast.error("Choose a template to continue."); else setStep(3); }}>Continue <ArrowRight /></Button></div>
+          </section>}
+
+          {step === 3 && <section>
+            <h2 className="step-heading"><span className="step-number">3</span> Your details and payment</h2>
+            <div className="details-fields">
+              <div><Label htmlFor="customer-name">Full name</Label><Input id="customer-name" autoComplete="name" maxLength={100} required value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Juan Dela Cruz" /></div>
+              <div><Label htmlFor="customer-mobile">Mobile number</Label><Input id="customer-mobile" inputMode="tel" autoComplete="tel" required value={mobile} onChange={(event) => setMobile(event.target.value)} placeholder="0917 123 4567" /></div>
+              <div><Label htmlFor="customer-email">Email address <span className="text-muted-foreground">(optional)</span></Label><Input id="customer-email" type="email" autoComplete="email" maxLength={255} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" /></div>
+            </div>
+            <fieldset className="payment-options"><legend className="step-heading">Choose a payment method</legend>{methods.map((choice) => <Button key={choice} type="button" variant="outline" aria-pressed={method === choice} className="payment-option" onClick={() => setMethod(choice)}><span aria-hidden="true">{method === choice ? "◉" : "○"}</span>{choice === "gcash" ? "GCash" : choice === "maya" ? "Maya" : "Bank transfer"}</Button>)}</fieldset>
+            <div className="preview-note">The studio will share verified payment instructions after your order is saved. Payment is confirmed by the studio before photo creation.</div>
+            <div className="step-buttons"><Button type="button" variant="outline" disabled={busy} onClick={() => setStep(2)}><ArrowLeft /> Back</Button><Button type="submit" disabled={busy}>{busy ? "Saving securely…" : "Place order"}<ArrowRight /></Button></div>
+          </section>}
+        </section>
+
+        <aside className="order-summary" aria-label="Order summary">
+          <p className="summary-label">Order summary</p>
+          <div className="summary-item"><span className="summary-icon">{pkg === "premium" ? <Music /> : <Camera />}</span><div><strong>{packages[pkg].name}</strong><span>{packages[pkg].details}</span><span>{pkg === "premium" ? "All five styles" : chosenStyle?.name ?? "First template not selected"}</span></div></div>
+          <div className="summary-total"><span>Total</span><strong>{peso(amount)}</strong></div>
+          <div className="package-switch"><Button type="button" variant="outline" size="sm" aria-pressed={pkg === "basic"} onClick={() => setPkg("basic")}>Basic · ₱{DEFAULT_PRICES.basic}</Button><Button type="button" variant="outline" size="sm" aria-pressed={pkg === "premium"} onClick={() => setPkg("premium")}>With music · ₱{DEFAULT_PRICES.premium}</Button></div>
+          <p className="summary-privacy"><LockKeyhole size={12} className="inline-block align-middle" /> Private upload · Deleted after 30 days</p>
+        </aside>
+      </form>
+    </main>
+    <SiteFooter />
+  </div>;
 }

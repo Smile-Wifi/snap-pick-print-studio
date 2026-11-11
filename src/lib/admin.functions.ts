@@ -1,9 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import type { Database } from "@/integrations/supabase/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { canGenerateOrder } from "@/lib/order-policy";
 
-async function requireAdmin(context: { supabase: { rpc: (name: "has_role", args: { _user_id: string; _role: "admin" }) => PromiseLike<{ data: boolean | null; error?: unknown }> }; userId: string }) {
-  const { data, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+async function requireAdmin(supabase: SupabaseClient<Database>, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
   if (error || data !== true) throw new Error("Staff access is required.");
 }
 
@@ -18,7 +21,7 @@ export const listOrders = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ search: z.string().max(100).optional(), status: z.enum(["all", "pending_payment", "payment_verified", "processing", "completed", "failed"]).default("all") }).parse(input))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     let query = context.supabase.from("orders").select("id, reference, full_name, mobile, email, package, template, amount, payment_method, payment_reference, status, payment_verified_at, result_paths, created_at, expires_at, admin_note").order("created_at", { ascending: false }).limit(250);
     if (data.status !== "all") query = query.eq("status", data.status);
     if (data.search) {
@@ -43,7 +46,7 @@ export const updateOrderPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), verified: z.boolean() }).parse(input))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const changes = data.verified
       ? { status: "payment_verified" as const, payment_verified_at: new Date().toISOString(), updated_at: new Date().toISOString(), admin_note: null }
       : { status: "pending_payment" as const, payment_verified_at: null, updated_at: new Date().toISOString() };
@@ -56,13 +59,13 @@ export const generateOrderPhoto = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), index: z.number().int().min(0).max(4) }).parse(input))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ORDER_BUCKET } = await import("@/server/storage.server");
     const { generateChristmasPhoto } = await import("@/server/ai.server");
     const { data: order } = await supabaseAdmin.from("orders").select("id, reference, status, payment_verified_at, original_path, result_paths").eq("id", data.id).maybeSingle();
     if (!order) throw new Error("Order not found.");
-    if (!order.payment_verified_at || !["payment_verified", "processing", "failed"].includes(order.status)) throw new Error("Verify payment before creating photos.");
+    if (!canGenerateOrder(order.status, order.payment_verified_at)) throw new Error("Verify payment before creating photos.");
 
     await supabaseAdmin.from("orders").update({ status: "processing", updated_at: new Date().toISOString() }).eq("id", order.id);
     try {
@@ -91,7 +94,7 @@ export const generateOrderPhoto = createServerFn({ method: "POST" })
 export const getAdminSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase.from("app_settings").select("key, value");
     if (error) throw new Error("Studio settings could not be loaded.");
     const values = Object.fromEntries((data ?? []).map((row) => [row.key, row.value]));
@@ -110,7 +113,7 @@ export const saveAdminSettings = createServerFn({ method: "POST" })
     retentionDays: z.number().int().min(1).max(365),
   }).parse(input))
   .handler(async ({ data, context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const now = new Date().toISOString();
     const { error } = await context.supabase.from("app_settings").upsert([
       { key: "pricing", value: data.pricing, updated_at: now },
@@ -118,5 +121,27 @@ export const saveAdminSettings = createServerFn({ method: "POST" })
       { key: "retention_days", value: data.retentionDays, updated_at: now },
     ]);
     if (error) throw new Error("Studio settings could not be saved.");
+    return { ok: true };
+  });
+
+export const listManualPayments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { signPaths, ORDER_BUCKET } = await import("@/server/storage.server");
+    const { data: payments, error } = await supabaseAdmin.from("payments").select("id, customer_name, phone, email, package_name, payment_method, amount, reference_number, sender_name, proof_image_url, status, created_at").order("created_at", { ascending: false }).limit(200);
+    if (error) throw new Error("Payment submissions could not be loaded.");
+    const urls = await signPaths(ORDER_BUCKET, (payments ?? []).map((payment) => payment.proof_image_url));
+    return (payments ?? []).map((payment) => ({ ...payment, proof_url: urls[payment.proof_image_url] ?? null }));
+  });
+
+export const reviewManualPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), approved: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context.supabase, context.userId);
+    const { error } = await context.supabase.from("payments").update({ status: data.approved ? "approved" : "rejected" }).eq("id", data.id);
+    if (error) throw new Error("The payment review could not be saved.");
     return { ok: true };
   });

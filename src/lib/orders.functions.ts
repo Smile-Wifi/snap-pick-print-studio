@@ -92,8 +92,9 @@ export const getCustomerOrder = createServerFn({ method: "POST" })
       createdAt: order.created_at,
       expiresAt: order.expires_at,
       originalUrl: signed[order.original_path] ?? null,
-      results: order.status === "completed" ? order.result_paths.map((path) => signed[path]).filter(Boolean) : [],
+      results: order.result_paths.map((path) => path ? signed[path] : null).filter((url): url is string => Boolean(url)),
       payTo: settings.payment[order.payment_method as "gcash" | "maya" | "bank"],
+      paymentSettings: settings.payment,
     };
   });
 
@@ -120,8 +121,9 @@ export const trackOrder = createServerFn({ method: "POST" })
 
 export const getSiteData = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { getSettings } = await import("@/server/storage.server");
+  const { getSettings, signPaths, MEDIA_BUCKET } = await import("@/server/storage.server");
   const settings = await getSettings();
   const { data: samples } = await supabaseAdmin.from("samples").select("id, style, image_url").order("created_at");
-  return { pricing: settings.pricing, payment: settings.payment, samples: samples ?? [] };
+  const signedUrls = await signPaths(MEDIA_BUCKET, (samples ?? []).map((sample) => sample.image_url), 86_400);
+  return { pricing: settings.pricing, payment: settings.payment, samples: (samples ?? []).map((sample) => ({ id: sample.id, style: sample.style, url: signedUrls[sample.image_url] ?? null })).filter((sample) => sample.url) };
 });

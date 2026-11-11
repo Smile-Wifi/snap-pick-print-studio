@@ -1,0 +1,19 @@
+import { describe, expect, it } from "vitest";
+import { canGenerateOrder, DEFAULT_ORDER_PRICES, DEFAULT_RETENTION_DAYS, orderExpiryDate } from "@/lib/order-policy";
+
+describe("Pasko order rules", () => {
+  it("keeps the original Basic and music package prices", () => {
+    expect(DEFAULT_ORDER_PRICES).toEqual({ basic: 99, premium: 149 });
+  });
+
+  it("keeps the default photo retention period at 30 days", () => {
+    expect(DEFAULT_RETENTION_DAYS).toBe(30);
+    expect(orderExpiryDate(Date.UTC(2026, 0, 1)).toISOString()).toBe("2026-01-31T00:00:00.000Z");
+  });
+
+  it("requires verified payment before a photo can be generated", () => {
+    expect(canGenerateOrder("pending_payment", null)).toBe(false);
+    expect(canGenerateOrder("processing", null)).toBe(false);
+    expect(canGenerateOrder("payment_verified", "2026-01-01T00:00:00.000Z")).toBe(true);
+  });
+});

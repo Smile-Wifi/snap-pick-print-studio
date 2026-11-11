@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 export function BrandLockup({ footer = false }: { footer?: boolean }) {
@@ -12,21 +13,32 @@ export function BrandLockup({ footer = false }: { footer?: boolean }) {
 }
 
 export function SiteHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const mobileLinks = [
+    { label: "Home", to: "/" },
+    { label: "How It Works", to: "/how-it-works" },
+    { label: "Sample Photos", to: "/samples" },
+    { label: "Pricing", to: "/pricing" },
+    { label: "FAQ", to: "/faq" },
+    { label: "Track Order", to: "/track" },
+  ] as const;
   return (
     <header className="site-header">
       <div className="site-header-inner">
         <BrandLockup />
         <nav className="site-nav" aria-label="Main navigation">
           <Link to="/">⌂ Home</Link>
-          <Link to="/" hash="how-it-works">How It Works</Link>
-          <Link to="/" hash="sample-photos">Sample Photos</Link>
-          <Link to="/" hash="pricing">Pricing</Link>
-          <Link to="/" hash="faq">FAQ</Link>
-          <Link to="/" hash="track-order">Track Order</Link>
+          <Link to="/how-it-works">How It Works</Link>
+          <Link to="/samples">Sample Photos</Link>
+          <Link to="/pricing">Pricing</Link>
+          <Link to="/faq">FAQ</Link>
+          <Link to="/track">Track Order</Link>
         </nav>
         <span className="language-label">EN · FIL</span>
         <Button size="sm" asChild><Link to="/create" search={{ pkg: "basic" }}>Create</Link></Button>
+        <Button className="mobile-menu-trigger" variant="ghost" size="icon" aria-label={menuOpen ? "Close menu" : "Open menu"} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</Button>
       </div>
+      {menuOpen && <nav className="mobile-site-nav" aria-label="Mobile navigation">{mobileLinks.map(({ label, to }) => <Link key={to} to={to} onClick={() => setMenuOpen(false)}>{label}</Link>)}</nav>}
     </header>
   );
 }
@@ -42,11 +54,16 @@ export function SiteFooter() {
           </div>
           <nav className="footer-nav" aria-label="Footer navigation">
             <Link to="/">Home</Link>
-            <Link to="/" hash="how-it-works">How It Works</Link>
-            <Link to="/" hash="pricing">Pricing</Link>
-            <Link to="/" hash="sample-photos">Sample Photos</Link>
-            <Link to="/" hash="faq">FAQ</Link>
+            <Link to="/how-it-works">How It Works</Link>
+            <Link to="/pricing">Pricing</Link>
+            <Link to="/samples">Sample Photos</Link>
+            <Link to="/faq">FAQ</Link>
+            <Link to="/track">Track Order</Link>
+            <Link to="/manual-payment">Studio Payment</Link>
             <a href="mailto:hello@paskophotomagic.com">Contact Us <ArrowUpRight size={12} className="inline-block" /></a>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/auth">Staff sign in</Link>
           </nav>
         </div>
         <p className="footer-note">Made with ❤️ in the Philippines 🇵🇭 · © 2026 Pasko Photo Magic</p>
