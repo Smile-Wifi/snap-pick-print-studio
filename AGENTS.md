@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application structure
+
+- Keep customer order operations in server functions, authenticate staff actions with the Cloud role check, and store original/generated photos in private object storage; this keeps private data out of public reads and client code.
