@@ -52,7 +52,7 @@ function ManualPaymentPage() {
 
   async function submitForm(event: FormEvent) {
     event.preventDefault();
-    if (!pkg || !method || !proof) return toast.error("Choose a package, payment method, and screenshot.");
+    if (!pkg || !method || !proof) { toast.error("Choose a package, payment method, and screenshot."); return; }
     setBusy(true);
     try {
       await submit({ data: { customerName, phone, email, packageId: pkg, paymentMethod: method, referenceNumber, amount: Number(amount), senderName, proof } });

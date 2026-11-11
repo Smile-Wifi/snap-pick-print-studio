@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { packages, peso, STATUS_LABEL } from "@/lib/pasko-content";
 import { getCustomerOrder, submitPaymentReference } from "@/lib/orders.functions";
-import GCashQr from "@/assets/gcash-qr.jpg.asset.json";
 
 export const Route = createFileRoute("/order/$reference")({
   validateSearch: (search: Record<string, unknown>) => ({ t: typeof search["t"] === "string" ? search["t"] : "" }),
@@ -35,11 +34,10 @@ function OrderPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (order && order.status !== "completed") {
-      const interval = window.setInterval(() => window.location.reload(), 45_000);
-      return () => window.clearInterval(interval);
-    }
-  }, [order?.status]);
+    if (!order || order.status === "completed") return undefined;
+    const interval = window.setInterval(() => window.location.reload(), 45_000);
+    return () => window.clearInterval(interval);
+  }, [order]);
 
   async function saveReference(event: FormEvent) {
     event.preventDefault();
@@ -78,7 +76,7 @@ function OrderPage() {
         <h2 className="step-heading">Payment instructions</h2>
         {order.status === "pending_payment" ? <>
           <div className="preview-note"><LockKeyhole size={16} /> Transfer the exact amount of <strong>{peso(order.amount)}</strong> using the instructions below. The studio reviews your payment before preparing photos.</div>
-          {paymentInstructions ? <div className="payment-instructions">{order.paymentMethod === "gcash" && <img className="payment-qr" src={GCashQr.url} alt="GCash payment QR code" />}<p>{paymentInstructions}</p></div> : <p className="payment-unavailable">Payment details for this method are not confirmed yet. Please contact the studio and include your order number.</p>}
+          {paymentInstructions ? <div className="payment-instructions"><p>{paymentInstructions}</p></div> : <p className="payment-unavailable">Payment details for this method are not confirmed yet. Please contact the studio and include your order number.</p>}
           <form className="payment-reference-form" onSubmit={saveReference}><label htmlFor="payment-reference">Payment reference number</label><div className="reference-input-row"><Input id="payment-reference" minLength={4} maxLength={60} value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} placeholder="Enter your transfer reference" required /><Button type="submit" disabled={saving}>{saving ? "Saving…" : "Submit reference"}<Send /></Button></div></form>
         </> : <div className="status-message"><Clock3 size={20} /><div><strong>{status}</strong><p>{order.paymentReference ? `Payment reference: ${order.paymentReference}` : "We'll update this page after your payment is reviewed."}</p></div></div>}
       </section>

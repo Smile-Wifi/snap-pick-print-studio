@@ -41,7 +41,6 @@ export const STYLES = [
 
 export type TemplateId = (typeof STYLES)[number]["key"];
 
-export const DEFAULT_PRICES = { basic: 99, premium: 149 } as const;
 export const PAYMENT_METHODS = { gcash: "GCash", maya: "Maya", bank: "Bank transfer" } as const;
 export const STATUS_LABEL: Record<string, string> = {
   pending_payment: "Pending payment",

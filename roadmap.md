@@ -6,3 +6,4 @@
 - [ ] Finish verifying photo generation provider credentials and cleanup caller configuration; retain the cleanup endpoint and note external schedule setup if unavailable.
 - [ ] Verify preview routes, build logs, tests, and safe order/payment/admin flows.
 - [ ] Handoff missing customer/user/file exports and any provider setup required for production; do not cut over the published site before verification.
+- [ ] Remove Replicate from photo creation and switch to the user's requested provider ("Meta API") — confirm which service, since Meta has no public photo-editing API.
