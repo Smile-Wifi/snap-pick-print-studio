@@ -788,3 +788,15 @@
 @keyframes santa-snowfall { 0% { transform: translate3d(0, -10vh, 0); } 100% { transform: translate3d(20px, 110vh, 0); } }
 @keyframes santa-dust { 0% { opacity: 0; transform: scale(0.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.2) translateY(20px); } }
 @media (max-width: 600px) { .santa-flyby { width: 180px; } .santa-trail { width: 140px; } }
+
+/* Poster towed behind the sleigh */
+.santa-tow { position: absolute; right: 88%; top: 30%; width: 62%; display: flex; align-items: center; }
+.santa-flyby[data-direction="left"] .santa-tow { right: auto; left: 88%; transform: scaleX(-1); }
+.santa-rope { width: 26%; height: 22px; flex: none; }
+.santa-rope path { fill: none; stroke: var(--gold); stroke-width: 3; stroke-linecap: round; opacity: 0.9; }
+.santa-poster { width: 74%; height: auto; border-radius: 6px; border: 2px solid var(--gold); box-shadow: 0 4px 14px oklch(0.2 0.05 150 / 0.5); transform: rotate(-4deg); }
+
+/* Christmas sound toggle */
+.santa-sound-toggle { position: fixed; bottom: 20px; left: 12px; z-index: 46; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--gold); background: oklch(0.32 0.09 25 / 0.92); color: var(--gold); cursor: pointer; box-shadow: 0 4px 14px oklch(0.2 0.05 150 / 0.45); transition: transform 0.15s ease, background 0.15s ease; }
+.santa-sound-toggle:hover { transform: scale(1.08); background: oklch(0.38 0.1 25 / 0.95); }
+.santa-sound-toggle[aria-pressed="true"] { background: var(--gold); color: oklch(0.32 0.09 25); }
