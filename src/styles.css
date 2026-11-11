@@ -770,3 +770,21 @@
   .package-card, .upload-zone { transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease; }
   .package-card:hover { box-shadow: 0 14px 32px oklch(0.2 0.08 150 / 0.16); }
 }
+
+/* Home hero: studio backdrop with the Pasko artwork on top */
+.hero-poster { position: relative; }
+.hero-poster .hero-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.hero-poster .hero-artwork { position: relative; z-index: 1; display: block; width: min(816px, 100%); height: auto; margin: 0 auto; }
+
+/* Flying Santa and snowfall */
+.santa-layer { position: fixed; inset: 0; z-index: 45; overflow: hidden; pointer-events: none; }
+.santa-snow { position: absolute; top: 0; color: oklch(1 0 0 / 0.75); text-shadow: 0 1px 4px oklch(0.2 0.05 150 / 0.4); animation: santa-snowfall linear infinite; }
+.santa-flyby { position: absolute; left: 0; top: 0; width: 280px; opacity: 0; will-change: transform, opacity; }
+.santa-flyby img { position: relative; z-index: 1; width: 100%; height: auto; filter: drop-shadow(0 3px 8px oklch(0.2 0.05 150 / 0.4)); }
+.santa-flyby[data-direction="left"] img, .santa-flyby[data-direction="left"] .santa-trail { transform: scaleX(-1); }
+.santa-trail { position: absolute; width: 220px; height: 90px; top: 38%; right: 80%; }
+.santa-flyby[data-direction="left"] .santa-trail { right: auto; left: 80%; }
+.santa-trail span { position: absolute; color: var(--gold); text-shadow: 0 0 7px var(--gold); font-size: 15px; animation: santa-dust 0.85s ease-out infinite; }
+@keyframes santa-snowfall { 0% { transform: translate3d(0, -10vh, 0); } 100% { transform: translate3d(20px, 110vh, 0); } }
+@keyframes santa-dust { 0% { opacity: 0; transform: scale(0.3); } 25% { opacity: 1; } 100% { opacity: 0; transform: scale(1.2) translateY(20px); } }
+@media (max-width: 600px) { .santa-flyby { width: 180px; } .santa-trail { width: 140px; } }
