@@ -11,6 +11,7 @@ import { Slideshow } from "@/components/order/Slideshow";
 import { getCustomerOrder, submitPaymentProof } from "@/lib/orders.functions";
 import MayaQr from "@/assets/maya-qr.jpeg.asset.json";
 import GotymeQr from "@/assets/gotyme-qr.jpeg.asset.json";
+import GcashQr from "@/assets/gcash-qr.jpeg.asset.json";
 
 export const Route = createFileRoute("/order/$reference")({
   validateSearch: (search: Record<string, unknown>) => ({ t: typeof search["t"] === "string" ? search["t"] : "" }),
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/order/$reference")({
 });
 
 const QR_OPTIONS = [
+  { key: "gcash", name: "GCash", image: GcashQr.url },
   { key: "maya", name: "Maya", image: MayaQr.url },
   { key: "gotyme", name: "GoTyme Bank", image: GotymeQr.url },
 ] as const;
@@ -106,7 +108,7 @@ function OrderPage() {
         <p className="upload-tip">{packages[order.pkg].details} · {order.fullName}</p>
 
         {awaitingPayment && <>
-          <h2 className="step-heading">Pay {peso(order.amount)} with Maya or GoTyme</h2>
+          <h2 className="step-heading">Pay {peso(order.amount)} with GCash, Maya or GoTyme</h2>
           {order.status === "rejected" && <div className="status-message status-rejected"><XCircle size={20} /><div><strong>Your payment was not verified</strong><p>{order.paymentReference ? `Reference submitted: ${order.paymentReference}. ` : ""}Please check the amount and reference number, then submit again.</p></div></div>}
           <div className="preview-note"><LockKeyhole size={16} /> Scan one QR code and send the exact amount of <strong>{peso(order.amount)}</strong>. Then enter your reference number below.</div>
           <div className="qr-grid">
@@ -122,7 +124,8 @@ function OrderPage() {
             <div className="reference-input-row"><Input id="payment-screenshot" type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => void selectScreenshot(event)} /></div>
             {screenshot && <img className="proof-preview" src={screenshot} alt="Payment screenshot preview" />}
             <Button type="submit" className="w-full" disabled={saving}>{saving ? "Sending…" : "I have paid – Submit Reference"}<Send /></Button>
-            {import.meta.env.DEV && <Button type="button" variant="outline" className="w-full" disabled={saving} onClick={() => void mockPayment()}>Mock Payment (Test Mode)</Button>}
+            <Button type="button" variant="outline" className="w-full" disabled={saving} onClick={() => void mockPayment()}>Mock Payment (Test Mode)</Button>
+            <p className="upload-tip">Test mode: sends a fake reference for staff to approve or reject.</p>
           </form>
         </>}
 
