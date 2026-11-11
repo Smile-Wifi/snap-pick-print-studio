@@ -9,3 +9,5 @@
 - [ ] Verify preview routes, build logs, tests, and safe order/payment/admin flows.
 - [ ] Handoff missing customer/user/file exports and any provider setup required for production; do not cut over the published site before verification.
 - [x] Photo creation now uses the built-in AI (Replicate removed).
+- [x] Staff "Test photo" and "Test Santa" buttons; restored premium slideshow and download tools from the backup.
+- [ ] Premium slideshow music: needs a song file from the owner.

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
+import { AdminPhotoTest } from "@/components/admin-photo-test";
 import { supabase } from "@/integrations/supabase/client";
 import { checkIsAdmin, generateOrderPhoto, getAdminSettings, listManualPayments, listOrders, reviewManualPayment, saveAdminSettings, updateOrderPayment } from "@/lib/admin.functions";
 import { DEFAULT_PRICES, STATUS_LABEL, peso } from "@/lib/pasko-content";
@@ -96,7 +97,7 @@ function AdminPage() {
 
   const stats = ordersData?.stats ?? { total: 0, paid: 0, waiting: 0, completed: 0 };
   return <div className="create-page"><SiteHeader /><main className="admin-page">
-    <div className="admin-topline"><div><p className="page-eyebrow">Private studio</p><h1>Orders &amp; payments</h1></div><div className="admin-actions"><Button type="button" variant="outline" onClick={() => void loadSettings()}><Save /> Settings</Button><Button type="button" variant="ghost" size="icon" aria-label="Refresh orders" onClick={() => { void refetch(); void refreshPayments(); }}><RefreshCw /></Button><Button type="button" variant="outline" onClick={() => void signOut()}><LogOut /> Sign out</Button></div></div>
+    <div className="admin-topline"><div><p className="page-eyebrow">Private studio</p><h1>Orders &amp; payments</h1></div><div className="admin-actions"><AdminPhotoTest /><Button type="button" variant="outline" onClick={() => window.dispatchEvent(new Event("santa:fly"))}>🎅 Test Santa</Button><Button type="button" variant="outline" onClick={() => void loadSettings()}><Save /> Settings</Button><Button type="button" variant="ghost" size="icon" aria-label="Refresh orders" onClick={() => { void refetch(); void refreshPayments(); }}><RefreshCw /></Button><Button type="button" variant="outline" onClick={() => void signOut()}><LogOut /> Sign out</Button></div></div>
     <section className="admin-stats" aria-label="Order totals"><article><span>Total orders</span><strong>{stats.total}</strong></article><article><span>Orders awaiting payment</span><strong>{stats.waiting}</strong></article><article><span>Verified sales</span><strong>{peso(stats.paid)}</strong></article><article><span>Completed orders</span><strong>{stats.completed}</strong></article></section>
     <section className="admin-section"><div className="admin-section-heading"><div><h2>Photo orders</h2><p>Review payment references and prepare the five portraits.</p></div><div className="admin-filters"><label className="admin-search"><Search size={16} /><Input aria-label="Search orders" value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Name, number, or order" /></label><select aria-label="Filter by status" value={status} onChange={(event) => setStatus(event.target.value as (typeof statusFilter)[number])}>{statusFilter.map((value) => <option key={value} value={value}>{value === "all" ? "All statuses" : STATUS_LABEL[value]}</option>)}</select></div></div>
       {isLoading ? <p className="admin-empty">Loading orders…</p> : ordersData?.orders.length ? <div className="admin-order-list">{ordersData.orders.map((order) => <article className="admin-order" key={order.id}>

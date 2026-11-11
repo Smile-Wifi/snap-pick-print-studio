@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { packages, peso, STATUS_LABEL } from "@/lib/pasko-content";
+import { Slideshow } from "@/components/order/Slideshow";
 import { getCustomerOrder, submitPaymentReference } from "@/lib/orders.functions";
 
 export const Route = createFileRoute("/order/$reference")({
@@ -83,6 +84,7 @@ function OrderPage() {
       <aside className="order-photo-aside">
         <h2 className="step-heading"><Image size={19} /> Your photos</h2>
         {order.results.length ? <div className="result-grid">{order.results.map((url, index) => <a href={url} download key={url} aria-label={`Download Christmas portrait ${index + 1}`}><img src={url} alt={`Christmas portrait ${index + 1}`} /><span><Download size={14} /> Download</span></a>)}</div> : <div className="result-placeholder"><span className="upload-icon"><Clock3 /></span><strong>Your photos will appear here</strong><p>Five Christmas portraits are created after payment is confirmed.</p></div>}
+        {order.pkg === "premium" && order.results.length === 5 && <Slideshow images={order.results} musicUrl={null} musicTitle={null} fileName={`${reference}-slideshow`} />}
         {order.originalUrl && <details className="original-photo-details"><summary>View uploaded photo</summary><a href={order.originalUrl} target="_blank" rel="noreferrer"><img src={order.originalUrl} alt="Uploaded original photo" /><span>Open original <ExternalLink size={14} /></span></a></details>}
         <p className="summary-privacy"><LockKeyhole size={12} className="inline-block align-middle" /> Private link · Photos deleted after 30 days</p>
       </aside>

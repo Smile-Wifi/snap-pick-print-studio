@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Sparkles, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChristmasSound } from "@/lib/christmas-magic";
 import Santa from "@/assets/santa-flyby.png.asset.json";
@@ -26,9 +26,10 @@ export function SantaFlyby() {
     if (!show || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let timer: ReturnType<typeof setTimeout>;
     let animation: Animation | undefined;
-    const pass = () => {
+    const fly = () => {
       const el = flight.current;
       if (el && !document.hidden) {
+        animation?.cancel();
         const reverse = Math.random() > 0.5;
         const fromY = 10 + Math.random() * 55;
         const toY = 10 + Math.random() * 55;
@@ -42,10 +43,13 @@ export function SantaFlyby() {
           { transform: t(reverse ? -40 : 115, toY), opacity: 0 },
         ], { duration, easing: "ease-in-out" });
       }
-      timer = setTimeout(pass, 10000 + Math.random() * 12000);
     };
+    const pass = () => { fly(); timer = setTimeout(pass, 10000 + Math.random() * 12000); };
+    // Test buttons dispatch this event to send Santa across right now.
+    const flyNow = () => { clearTimeout(timer); fly(); timer = setTimeout(pass, 10000 + Math.random() * 12000); };
+    window.addEventListener("santa:fly", flyNow);
     timer = setTimeout(pass, 2500);
-    return () => { clearTimeout(timer); animation?.cancel(); };
+    return () => { clearTimeout(timer); animation?.cancel(); window.removeEventListener("santa:fly", flyNow); };
   }, [show]);
 
   useEffect(() => {
@@ -142,6 +146,17 @@ export function SantaFlyby() {
           <div className="santa-trail">{Array.from({ length: 16 }, (_, i) => <span key={i} style={{ left: `${i * 6}%`, top: `${(i * 37) % 80}%`, animationDelay: `${-i * 0.09}s` }}>✦</span>)}</div>
         </div>
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="santa-fly-test"
+        onClick={() => window.dispatchEvent(new Event("santa:fly"))}
+        aria-label="Test Santa flyby"
+        title="Test Santa flyby"
+      >
+        <Sparkles size={20} />
+      </Button>
       <Button
         type="button"
         variant="ghost"
