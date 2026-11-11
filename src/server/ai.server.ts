@@ -1,72 +1,43 @@
 import { STYLES } from "@/lib/pasko-content";
 
 const identityRule = "Preserve each person's exact face, age, skin tone, facial features, gaze, and head angle from the uploaded photo. Keep the same number of people; do not add or remove anyone. Change only clothing and Christmas surroundings. Photorealistic, natural anatomy, no text or watermark.";
-const gateway = "https://connector-gateway.lovable.dev/replicate/v1";
+const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+const MODEL = "openai/gpt-image-2.5-sunburst";
 
+// Uses Lovable's built-in AI to restyle the customer's photo into one Christmas scene.
 export async function generateChristmasPhoto(original: Blob, styleIndex: number) {
-  const lovableKey = process.env["LOVABLE_API_KEY"];
-  const replicateKey = process.env["REPLICATE_API_KEY"];
-  if (!lovableKey || !replicateKey) throw new Error("Photo generation is not connected yet.");
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) throw new Error("Photo creation is not set up yet.");
   const style = STYLES[styleIndex];
   if (!style) throw new Error("Unknown Christmas style.");
   if (!original.size || original.size > 10 * 1024 * 1024) throw new Error("The original photo is missing or too large.");
 
-  const imageBytes = new Uint8Array(await original.arrayBuffer());
-  let binary = "";
-  for (let offset = 0; offset < imageBytes.length; offset += 8192) {
-    binary += String.fromCharCode(...imageBytes.subarray(offset, offset + 8192));
-  }
-  const body = {
-    input: {
-      prompt: `${style.prompt} ${identityRule}`,
-      input_image: `data:${original.type || "image/jpeg"};base64,${btoa(binary)}`,
-      aspect_ratio: "2:3",
-      output_format: "png",
-    },
-  };
-  const endpoint = `${gateway}/models/black-forest-labs/flux-kontext-pro/predictions`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${lovableKey}`,
-      "X-Connection-Api-Key": replicateKey,
-      "Content-Type": "application/json",
-      Prefer: "wait=60",
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(65_000),
-  });
-  if (!response.ok) throw new Error("The photo provider could not create this image. Please try again.");
-  const result: unknown = await response.json();
-  if (!result || typeof result !== "object") throw new Error("The photo provider returned an unreadable result.");
-  const prediction = result as { status?: string; output?: unknown; urls?: { get?: string } };
+  const form = new FormData();
+  form.set("model", MODEL);
+  form.set("prompt", `${style.prompt} ${identityRule}`);
+  form.set("size", "1024x1536");
+  form.set("output_format", "png");
+  form.set("image", new File([original], "original.png", { type: original.type || "image/jpeg" }));
 
-  let predictionState = prediction;
-  for (let attempt = 0; attempt < 20 && (predictionState.status === "starting" || predictionState.status === "processing"); attempt += 1) {
-    if (!predictionState.urls?.get || !predictionState.urls.get.startsWith(`${gateway}/`)) break;
-    await new Promise((resolve) => setTimeout(resolve, 2500));
-    const poll = await fetch(predictionState.urls.get, {
-      headers: { Authorization: `Bearer ${lovableKey}`, "X-Connection-Api-Key": replicateKey },
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!poll.ok) throw new Error("The photo provider stopped responding.");
-    const next: unknown = await poll.json();
-    if (!next || typeof next !== "object") throw new Error("The photo provider returned an unreadable result.");
-    predictionState = next as typeof predictionState;
+  const response = await fetch(`${GATEWAY}/images/edits`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`Image edit failed [${response.status}]: ${text}`);
+    if (response.status === 402) throw new Error("AI credits have run out. Add credits in Settings → Plans & credits, then try again.");
+    if (response.status === 429) throw new Error("Too many photos are being created right now. Please try again in a minute.");
+    let message = "";
+    try { message = (JSON.parse(text) as { error?: { message?: string }; message?: string }).error?.message ?? ""; } catch { /* not json */ }
+    throw new Error(message || `Photo creation failed (${response.status}).`);
   }
-  const output = predictionState.output;
-  if (predictionState.status !== "succeeded" || typeof output !== "string") {
-    throw new Error("Photo generation did not complete. Please try again later.");
-  }
-  const imageUrl = new URL(output);
-  if (imageUrl.protocol !== "https:" || !(imageUrl.hostname === "replicate.delivery" || imageUrl.hostname.endsWith(".replicate.delivery"))) {
-    throw new Error("The photo provider returned an unsupported image address.");
-  }
-  const imageResponse = await fetch(imageUrl.href, { signal: AbortSignal.timeout(20_000) });
-  if (!imageResponse.ok) throw new Error("The finished photo could not be downloaded.");
-  const png = new Uint8Array(await imageResponse.arrayBuffer());
-  if (![137, 80, 78, 71, 13, 10, 26, 10].every((value, index) => png[index] === value)) {
-    throw new Error("The photo provider returned an invalid image.");
-  }
+  const result = (await response.json()) as { data?: { b64_json?: string }[] };
+  const b64 = result.data?.[0]?.b64_json;
+  if (!b64) throw new Error("No photo came back. The image may have been declined.");
+  const binary = atob(b64);
+  const png = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) png[i] = binary.charCodeAt(i);
   return png;
 }
