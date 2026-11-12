@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { DEFAULT_PRICES, normalizePhMobile, packages, photoStyles, peso, type PackageId } from "@/lib/pasko-content";
 import { getSiteData, createOrder } from "@/lib/orders.functions";
+import { CheckoutPhotoTest } from "@/components/checkout-photo-test";
 
 export const Route = createFileRoute("/create")({
   validateSearch: (search: Record<string, unknown>) => ({ pkg: search["pkg"] === "premium" ? "premium" as const : "basic" as const }),
@@ -178,6 +179,7 @@ function CreatePage() {
             </div>
             <fieldset className="payment-options"><legend className="step-heading">Choose a payment method</legend>{methods.map((choice) => <Button key={choice} type="button" variant="outline" aria-pressed={method === choice} className="payment-option" onClick={() => setMethod(choice)}><span aria-hidden="true">{method === choice ? "◉" : "○"}</span>{choice === "gcash" ? "GCash" : choice === "maya" ? "Maya" : "Bank transfer"}</Button>)}</fieldset>
             <div className="preview-note">The studio will share verified payment instructions after your order is saved. Payment is confirmed by the studio before photo creation.</div>
+            {photo && <CheckoutPhotoTest key={pkg} photo={photo.dataUrl} template={chosenStyle?.key ?? "santa"} pkg={pkg} />}
             <div className="step-buttons"><Button type="button" variant="outline" disabled={busy} onClick={() => setStep(2)}><ArrowLeft /> Back</Button><Button type="submit" disabled={busy}>{busy ? "Saving securely…" : "Place order"}<ArrowRight /></Button></div>
           </section>}
         </section>
