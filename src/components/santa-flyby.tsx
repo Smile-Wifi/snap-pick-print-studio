@@ -3,7 +3,7 @@ import { Sparkles, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChristmasSound } from "@/lib/christmas-magic";
 import Santa from "@/assets/santa-flyby.png.asset.json";
-import Poster from "@/assets/eyeberry.png.asset.json";
+import Poster from "@/assets/maligayang-pasko-banner.png";
 
 const flakes = Array.from({ length: 18 }, (_, i) => ({ left: (i * 53) % 100, size: 6 + ((i * 7) % 10), duration: 9 + ((i * 3) % 9), delay: -((i * 1.7) % 12) }));
 
@@ -130,7 +130,7 @@ export function SantaFlyby() {
         <div ref={flight} className="santa-flyby" data-direction="right">
           <div className="santa-tow">
             <svg className="santa-rope" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 10 Q50 36 100 50 Q50 65 0 90" /><circle cx="98" cy="50" r="3" /></svg>
-            <svg className="santa-poster" viewBox="-12 -12 1104 835" role="presentation">
+            <svg className="santa-poster" viewBox="-12 -12 1112 840" role="presentation">
               <defs>
                 <filter id={rippleId} x="-5%" y="-8%" width="110%" height="116%" colorInterpolationFilters="sRGB">
                   <feTurbulence type="fractalNoise" baseFrequency="0.008 0.025" numOctaves="1" seed="5" result="wind">
@@ -139,7 +139,7 @@ export function SantaFlyby() {
                   <feDisplacementMap in="SourceGraphic" in2="wind" scale="12" xChannelSelector="R" yChannelSelector="G" />
                 </filter>
               </defs>
-              <image href={Poster.url} width="1080" height="811" filter={`url(#${rippleId})`} />
+              <image href={Poster} width="1088" height="816" filter={`url(#${rippleId})`} />
             </svg>
           </div>
           <img className="santa-sleigh" src={Santa.url} width={1152} height={576} alt="" />

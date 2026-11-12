@@ -17,3 +17,5 @@
 - [x] Mock Payment test mode (development only) verified end-to-end in the preview.
 - [x] Order records tagged with company label "JIS Company".
 - [ ] GCash QR: owner sent Maya + GoTyme only; swap in a GCash QR if provided.
+- [x] Replace Santa's Eyeberry flag with a "MALIGAYANG PASKO 2026" banner.
+- [ ] Replace Mock Payment button with real Maya/GoTyme payment links — waiting on the owner's payment link URLs.
