@@ -55,8 +55,26 @@ export function LocalPackageDownload({ photos, video, name = "PaskoPhotoMagic" }
   }, [photos, video]);
   const label = video ? "Download 5 photos + slideshow" : "Download all 5 photos";
   return <div className="space-y-2">
-    {archive ? <LocalFileSave blob={archive} name={`${name}.zip`} label={label} /> : <Button variant="outline" disabled><Loader2 className="size-4 animate-spin" />{error ? "Files unavailable" : photos.length !== 5 ? "Waiting for all 5 photos…" : `Preparing ${video ? "photos + video" : "5 photos"}…`}</Button>}
+    {archive ? <ZipSave blob={archive} name={`${name}.zip`} label={label} /> : <Button variant="outline" disabled><Loader2 className="size-4 animate-spin" />{error ? "Files unavailable" : photos.length !== 5 ? "Waiting for all 5 photos…" : `Preparing ${video ? "photos + video" : "5 photos"}…`}</Button>}
     <p className="text-xs">ZIP file · Saved to Downloads / Files on your phone or computer.</p>
     {error && <p role="alert" className="text-sm">{error}</p>}
   </div>;
+}
+// ZIPs skip the phone share sheet (iOS/PWA rejects .zip there) and use the same
+// direct link download that already works for the slideshow video.
+function ZipSave({ blob, name, label }: { blob: Blob; name: string; label: string }) {
+  if (isInAppBrowser()) return <LocalFileSave blob={blob} name={name} label={label} />;
+  function save() {
+    const url = URL.createObjectURL(blob);
+    try {
+      const a = document.createElement("a");
+      a.href = url; a.download = name; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove();
+      toast.success("Saved! Check your Downloads / Files.");
+    } catch {
+      window.open(url, "_blank");
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+  return <Button variant="secondary" onClick={save}><Download />{label}</Button>;
 }
