@@ -64,3 +64,11 @@ export function isIOSDevice(ua = typeof navigator !== "undefined" ? navigator.us
 export function needsLongPressSave(ua?: string) {
   return isIOSDevice(ua) || isInAppBrowser(ua);
 }
+
+/** Link that leaves Messenger/Facebook's in-app browser for the phone's real browser. */
+export function externalBrowserUrl(href = typeof location !== "undefined" ? location.href : "", ua = typeof navigator !== "undefined" ? navigator.userAgent : "") {
+  const u = new URL(href);
+  if (/Android/i.test(ua)) return `intent://${u.host}${u.pathname}${u.search}${u.hash}#Intent;scheme=${u.protocol.replace(":", "")};package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(href)};end`;
+  if (isIOSDevice(ua)) return `x-safari-${href}`;
+  return href;
+}

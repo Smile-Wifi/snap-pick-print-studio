@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Download, FolderDown, Loader2 } from "lucide-react";
+import { Copy, Download, ExternalLink, FolderDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { buildLocalPackage, deliverFile, isInAppBrowser, isIOSDevice, type LocalPhoto } from "@/lib/download";
+import { buildLocalPackage, deliverFile, externalBrowserUrl, isInAppBrowser, isIOSDevice, type LocalPhoto } from "@/lib/download";
 
 export function LocalFileSave({ blob, name, label }: { blob: Blob; name: string; label: string }) {
   const [open, setOpen] = useState(false);
@@ -25,6 +25,13 @@ export function LocalFileSave({ blob, name, label }: { blob: Blob; name: string;
           <DialogTitle className="text-pine">Save to your phone 🎄</DialogTitle>
           <DialogDescription>{name}</DialogDescription>
         </DialogHeader>
+        {isInAppBrowser() && <div className="space-y-2 rounded-lg border border-gold p-3">
+          <p className="text-sm font-semibold">Messenger / Facebook blocks downloads.</p>
+          {blob.type.startsWith("image/") && url && <><img src={url} alt="Long-press to save" className="max-h-72 w-full rounded object-contain" /><p className="text-sm">Press and hold the photo, then choose “Save image”. / Pindutin nang matagal ang photo at piliin ang “Save image”.</p></>}
+          <Button variant="default" className="w-full" onClick={() => { window.location.href = externalBrowserUrl(); }}><ExternalLink />Open in Chrome / Safari to save</Button>
+          <Button variant="outline" className="w-full" onClick={() => { void navigator.clipboard?.writeText(location.href).then(() => toast.success("Link copied. Paste it in Chrome or Safari.")).catch(() => toast.error("Tap ⋯ then “Open in browser”.")); }}><Copy />Copy page link</Button>
+          <p className="text-xs text-muted-foreground">Or tap ⋯ at the top, then “Open in external browser”.</p>
+        </div>}
         <p className="text-sm">Tap Save to Files, then choose “Save to Files” in your phone’s share menu. For an MP4, you can also choose “Save Video”.</p>
         <p className="text-sm text-muted-foreground">I-save sa Files ng phone. ZIP: buksan sa Files para makita ang 5 photos{blob.type === "application/zip" ? " at ang video kung kasama" : ""}.</p>
         <Button variant="default" onClick={() => void save()}><FolderDown />Save to Files / Photos</Button>
