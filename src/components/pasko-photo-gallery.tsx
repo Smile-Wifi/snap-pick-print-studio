@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { STYLES } from "@/lib/pasko-content";
 import { dataUrlToBlob, deliverFile } from "@/lib/download";
 import { LocalPackageDownload } from "@/components/LocalDownloadControls";
+import { RENDER_STATUS_LABEL, type RenderStatus } from "@/lib/render-outcome";
 
-export function PaskoPhotoGallery({ images, errors = {}, busy = [], retry }: { images: (string | null)[]; errors?: Record<number, string>; busy?: number[]; retry?: (index: number) => void }) {
+export function PaskoPhotoGallery({ images, errors = {}, busy = [], status = {}, retry }: { images: (string | null)[]; errors?: Record<number, string>; busy?: number[]; status?: Record<number, RenderStatus>; retry?: (index: number) => void }) {
   const [blobs, setBlobs] = useState<Record<string, Blob>>({});
   const key = images.join("|");
   useEffect(() => {
@@ -21,9 +22,9 @@ export function PaskoPhotoGallery({ images, errors = {}, busy = [], retry }: { i
   return <div className="space-y-4"><div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
     {STYLES.map((style, i) => <figure key={style.key} className="space-y-2">
       <figcaption className="font-semibold">{style.name}</figcaption>
-      {images[i] ? <img src={images[i] ?? undefined} alt={`${style.name} Christmas portrait`} className="aspect-[2/3] w-full rounded-lg object-contain bg-muted" /> : <div className="flex aspect-[2/3] items-center justify-center rounded-lg bg-muted p-4 text-center text-muted-foreground">{busy.includes(i) ? <LoaderCircle className="animate-spin" aria-label="Creating photo" /> : errors[i] ? <p role="alert">{errors[i]}</p> : "Waiting for photo"}</div>}
+      {images[i] ? <img src={images[i] ?? undefined} alt={`${style.name} Christmas portrait`} className="aspect-[2/3] w-full rounded-lg object-contain bg-muted" /> : <div className="flex aspect-[2/3] items-center justify-center rounded-lg bg-muted p-4 text-center text-muted-foreground">{busy.includes(i) ? <span className="flex flex-col items-center gap-2"><LoaderCircle className="animate-spin" aria-label="Creating photo" />{status[i] && <span>{RENDER_STATUS_LABEL[status[i]]}</span>}</span> : errors[i] ? <p role="alert">{errors[i]}</p> : "Waiting for photo"}</div>}
       {images[i] && <Button type="button" variant="outline" disabled={!blobs[images[i] ?? ""]} onClick={() => { const blob = blobs[images[i] ?? ""]; if (blob) void deliverFile(blob, `pasko-${style.key}.png`); }}><Download />Download</Button>}
-      {!images[i] && errors[i] && retry && <Button type="button" variant="outline" disabled={busy.length > 0} onClick={() => retry(i)}><RotateCcw />Retry {style.name}</Button>}
+      {!images[i] && errors[i] && retry && <Button type="button" variant="outline" disabled={busy.length > 0} onClick={() => retry(i)}><RotateCcw />Retry this style</Button>}
     </figure>)}
   </div>{photos.length === 5 && <LocalPackageDownload photos={photos} name="pasko-five-portraits" />}</div>;
 }

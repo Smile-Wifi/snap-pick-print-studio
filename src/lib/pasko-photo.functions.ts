@@ -2,12 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { META_STYLE_IDS } from "@/lib/meta-photo-styles";
 
-// Owner-requested public demo; one provider request per selected style.
+// Owner-requested public demo; one provider attempt per call so the browser can show Retrying / Using fallback.
 export const generatePaskoPhotos = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({ imageBase64: z.string().min(1).max(14_000_000), style: z.enum(META_STYLE_IDS) }).parse(input))
+  .inputValidator((input: unknown) => z.object({ imageBase64: z.string().min(1).max(14_000_000), style: z.enum(META_STYLE_IDS), provider: z.enum(["meta", "fallback"]).default("meta") }).parse(input))
   .handler(async ({ data }) => {
-    const { generateMetaPhoto } = await import("@/server/ai.server");
-    return { image: await generateMetaPhoto(data.imageBase64, data.style) };
+    const { renderMetaOnce, renderFallbackOnce } = await import("@/server/ai.server");
+    return data.provider === "meta" ? renderMetaOnce(data.imageBase64, data.style) : renderFallbackOnce(data.imageBase64, data.style);
   });
 
 export const generatePaidPaskoPhotos = createServerFn({ method: "POST" })

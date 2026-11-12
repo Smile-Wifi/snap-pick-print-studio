@@ -34,7 +34,7 @@ use the editor.
 - Keep customer order operations in server functions, authenticate staff actions with the Cloud role check, and store original/generated photos in private object storage; this keeps private data out of public reads and client code.
 - Animate the uploaded sleigh flag with SVG displacement and CSS sway, keeping its lettering unmirrored; this preserves the original artwork while simulating wind in both flight directions.
 - Call Meta's Llama API only from server code reading the MODEL_API_KEY secret, behind staff auth; new server logic uses server functions, not new Edge Functions.
-- Route Christmas photo edits through Meta Muse using server-only MODEL_API_KEY; map legacy template indices explicitly to provider style IDs to preserve existing orders.
+- Route Christmas photo edits through Meta Muse using server-only MODEL_API_KEY, retrying once on 404/5xx and then falling back to the Lovable AI Gateway; public tests make one provider attempt per call so the browser can show each stage. Map legacy template indices explicitly to provider style IDs to preserve existing orders.
 - Claim paid photo batches conditionally and save all settled results once; parallel renders must not overwrite sibling result slots.
 - Keep the owner-requested homepage demo public and separate from private, token-checked paid order generation; demo calls never create orders.
 - Share the existing slideshow player across homepage and checkout photo tests; available results can play with music without changing paid-order requirements or adding test-attempt quotas.
