@@ -512,6 +512,9 @@
 .payment-option { justify-content: flex-start; min-height: 46px; padding: 10px; text-align: left; }
 .payment-option[aria-pressed="true"] { border-color: var(--pine); color: var(--pine); }
 .package-switch { display: grid; gap: 8px; margin-top: 14px; }
+/* The summary panel paints its text cream; outline buttons there need dark labels. */
+.order-summary .package-switch button { color: var(--pine-deep); }
+.order-summary .package-switch button[aria-pressed="true"] { border-color: var(--holly); box-shadow: inset 0 0 0 1px var(--holly); }
 .summary-item div { min-width: 0; }
 .summary-item span { overflow-wrap: anywhere; }
 .order-summary { border-radius: 6px; }

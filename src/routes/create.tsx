@@ -159,6 +159,7 @@ function CreatePage() {
             </div>
             {fileError && <p className="upload-error" role="alert">{fileError}</p>}
             <p className="upload-tip">A clear, front-facing photo helps keep every face true to the original.</p>
+            <div className="step-buttons"><span /><Button type="submit">Continue <ArrowRight /></Button></div>
           </section>}
 
           {step === 2 && <section>
