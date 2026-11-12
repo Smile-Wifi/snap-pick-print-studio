@@ -67,6 +67,7 @@ export function SiteFooter() {
           </nav>
         </div>
         <p className="footer-note">Made with ❤️ in the Philippines 🇵🇭 · © 2026 Pasko Photo Magic</p>
+        <p className="footer-note">Pasko Photo Magic by Elon Lab Corporation · Quezon City, Philippines</p>
       </div>
     </footer>
   );
