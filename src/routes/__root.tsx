@@ -1,3 +1,4 @@
+import { InAppBrowserEscape } from "@/components/in-app-browser-escape";
 import { SantaFlyby } from "@/components/santa-flyby";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -133,6 +134,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <SantaFlyby />
+      <InAppBrowserEscape />
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
