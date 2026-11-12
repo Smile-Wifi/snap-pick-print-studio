@@ -32,4 +32,4 @@ use the editor.
 ## Application structure
 
 - Keep customer order operations in server functions, authenticate staff actions with the Cloud role check, and store original/generated photos in private object storage; this keeps private data out of public reads and client code.
-- Animate the uploaded sleigh flag with SVG displacement and CSS sway, keeping its lettering unmirrored; this preserves the original artwork while simulating wind in both flight directions.
+- Animate the uploaded sleigh flag with SVG displacement and CSS sway, keeping its lettering unmirrored; this preserves the original artwork while simulating wind in both flight directions.- Call Meta's Llama API only from server code reading the MODEL_API_KEY secret, behind staff auth; new server logic uses server functions, not new Edge Functions.
