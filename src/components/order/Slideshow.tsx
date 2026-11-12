@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Clapperboard, ExternalLink, Loader2, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { Clapperboard, Download, ExternalLink, Loader2, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { recordSlideshow, wakeSlideshowAudio, SLIDESHOW_DURATION_SECONDS } from "@/lib/slideshow-video";
-import { LocalFileSave, LocalPackageDownload } from "@/components/LocalDownloadControls";
+import { LocalPackageDownload } from "@/components/LocalDownloadControls";
 import { Button } from "@/components/ui/button";
 import { FilmSlideshowPreview } from "@/components/order/FilmSlideshowPreview";
 
@@ -86,6 +86,32 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const audio = useRef<HTMLAudioElement>(null);
+  const videoEl = useRef<HTMLVideoElement>(null);
+  const [saving, setSaving] = useState(false);
+
+  // One download path, using the same source the player is showing.
+  async function downloadSlideshow() {
+    const src = videoEl.current?.currentSrc || video?.url;
+    if (!src) return;
+    const name = `${fileName}.${video?.ext ?? "mp4"}`;
+    const click = (href: string) => { const a = document.createElement("a"); a.href = href; a.download = name; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); };
+    setSaving(true);
+    const id = toast.loading("Preparing download...");
+    try {
+      if (src.startsWith("blob:")) click(src);
+      else {
+        const r = await fetch(src);
+        if (!r.ok) throw new Error("fetch failed");
+        const url = URL.createObjectURL(await r.blob());
+        click(url);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+      toast.success("Saved! Check your Downloads.", { id });
+    } catch {
+      toast.error("Download failed, opening video...", { id });
+      window.open(src, "_blank");
+    } finally { setSaving(false); }
+  }
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("pasko-slideshow-audio", { detail: playing || making !== null }));
@@ -124,9 +150,9 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
           </div>
         ) : video ? (
           <div className="space-y-3">
-            <video src={video.url} controls playsInline preload="metadata" aria-label="Slideshow video preview" className="max-h-96 w-full rounded-xl" onError={() => setError("This browser cannot preview the video, but you can still save it below.")} />
+            <video ref={videoEl} src={video.url} controls playsInline preload="metadata" aria-label="Slideshow video preview" className="max-h-96 w-full rounded-xl" onError={() => setError("This browser cannot preview the video, but you can still save it below.")} />
             <div className="flex flex-wrap gap-2">
-            <LocalFileSave blob={video.blob} name={`${fileName}.${video.ext}`} label="Save slideshow video" />
+            <Button variant="secondary" disabled={saving} onClick={() => void downloadSlideshow()}>{saving ? <Loader2 className="animate-spin" /> : <Download />}Save slideshow video</Button>
             <Button asChild variant="outline"><a href={video.url} target="_blank" rel="noopener noreferrer"><ExternalLink /> Open video</a></Button>
             </div>
             <LocalPackageDownload photos={packagePhotos} video={packageVideo} name={`${fileName}-complete-package`} />
