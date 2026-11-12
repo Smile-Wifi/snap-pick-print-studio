@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { drawFilmFrame, loadFilmPhoto, makeGrain, SLIDESHOW_HEIGHT, SLIDESHOW_PHOTO_SECONDS, SLIDESHOW_WIDTH } from "@/lib/slideshow-video";
+import { drawFilmFrame, loadFilmPhoto, makeGrain, SLIDESHOW_HEIGHT, SLIDESHOW_DURATION_SECONDS, SLIDESHOW_WIDTH } from "@/lib/slideshow-video";
 
 export function FilmSlideshowPreview({ images, playing }: { images: string[]; playing: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -34,7 +34,7 @@ export function FilmSlideshowPreview({ images, playing }: { images: string[]; pl
     const grain = makeGrain();
     let frame = 0;
     let previous = performance.now();
-    const duration = photos.length * SLIDESHOW_PHOTO_SECONDS;
+    const duration = SLIDESHOW_DURATION_SECONDS;
     const draw = (now: number) => {
       if (playing && !document.hidden) elapsed.current = (elapsed.current + (now - previous) / 1000) % duration;
       previous = now;

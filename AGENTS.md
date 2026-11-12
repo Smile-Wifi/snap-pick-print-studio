@@ -41,4 +41,4 @@ use the editor.
 - Start checkout test styles concurrently and settle each slot independently; a slow or failed provider response must not delay starting sibling styles.
 - Start premium video assembly when all five order results are available, using the shared local recorder; retain a manual audio-permission fallback and a separate download tap for mobile browsers.
 - Keep phone installation manifest-only with public app icons and root head metadata; no app-shell service worker unless offline use is explicitly requested, preventing stale previews and private-photo caching.
-- Draw the five-frame filmstrip through the shared canvas renderer for both preview and exported video; visual updates must not change the existing music source or recording timeline.
+- Draw portrait photo frames on a horizontally scrolling filmstrip through the shared canvas renderer and duration constant for preview and exported video; this keeps both outputs aligned while preserving the existing music source.

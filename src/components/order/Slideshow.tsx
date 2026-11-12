@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Clapperboard, ExternalLink, Loader2, Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { recordSlideshow, wakeSlideshowAudio } from "@/lib/slideshow-video";
+import { recordSlideshow, wakeSlideshowAudio, SLIDESHOW_DURATION_SECONDS } from "@/lib/slideshow-video";
 import { LocalFileSave, LocalPackageDownload } from "@/components/LocalDownloadControls";
 import { Button } from "@/components/ui/button";
 import { FilmSlideshowPreview } from "@/components/order/FilmSlideshowPreview";
@@ -120,7 +120,7 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
         {making !== null ? (
           <div>
             <Progress value={making * 100} />
-            <p className="mt-1 flex items-center gap-1 text-xs"><Loader2 className="h-3 w-3 animate-spin" /> Creating your slideshow video with music… about 17 seconds. Keep this page open.</p>
+            <p className="mt-1 flex items-center gap-1 text-xs"><Loader2 className="h-3 w-3 animate-spin" /> Creating your slideshow video with music… about 15 seconds. Keep this page open.</p>
           </div>
         ) : video ? (
           <div className="space-y-3">
@@ -139,7 +139,7 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
         {(images.length !== 5 || !musicUrl) && <p className="text-sm text-primary-foreground">Waiting for all 5 photos and Christmas music before creating your video.</p>}
         {error && <p role="alert" className="text-sm text-primary-foreground">{error}</p>}
       </div>
-      {musicUrl && <audio ref={audio} src={musicUrl} loop preload="none" />}
+      {musicUrl && <audio ref={audio} src={musicUrl} loop preload="none" onTimeUpdate={() => { if (audio.current && audio.current.currentTime >= SLIDESHOW_DURATION_SECONDS) audio.current.currentTime = 0; }} />}
     </div>
   );
 }

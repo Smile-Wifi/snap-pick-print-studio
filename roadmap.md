@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Add both mobile app capability tags and update the shared slideshow to horizontal 9:16 frames with a 15-second duration; phone layout and 720×1280 video export (15.005 seconds) verified, existing Christmas music retained, and 10 focused tests passed.
+
 - [x] Replace slideshow visuals with a 9:16 five-frame vintage filmstrip; preview and real 720×1280 video export verified with audio and 17-second duration, leaving the Christmas music unchanged.
 
 - [x] Add iOS/Android home-screen metadata, app icons, and phone safe-area support without offline caching; emulated phone layouts and upload/continue flow passed, with real-device installation still unverified.

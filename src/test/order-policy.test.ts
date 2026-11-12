@@ -1,13 +1,25 @@
 import { describe, expect, it } from "vitest";
 import { canGenerateOrder, DEFAULT_ORDER_PRICES, DEFAULT_RETENTION_DAYS, orderExpiryDate } from "@/lib/order-policy";
-import { SLIDESHOW_WIDTH, SLIDESHOW_HEIGHT, SLIDESHOW_PHOTO_SECONDS } from "@/lib/slideshow-video";
+import { filmstripLayout, SLIDESHOW_WIDTH, SLIDESHOW_HEIGHT, SLIDESHOW_PHOTO_SECONDS, SLIDESHOW_DURATION_SECONDS } from "@/lib/slideshow-video";
 
 describe("Pasko order rules", () => {
   it("assembles five photos into a 9:16 portrait video", () => {
     expect(SLIDESHOW_WIDTH).toBe(720);
     expect(SLIDESHOW_HEIGHT).toBe(1280);
     expect(SLIDESHOW_WIDTH / SLIDESHOW_HEIGHT).toBe(9 / 16);
-    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(44 - 27);
+    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(15);
+    expect(SLIDESHOW_DURATION_SECONDS).toBe(15);
+  });
+  it("uses 9:16 portrait photo frames", () => {
+    const frame = filmstripLayout(0, 5);
+    expect(frame.photoWidth / frame.photoHeight).toBe(9 / 16);
+  });
+  it("scrolls horizontally through five photos and loops after 15 seconds", () => {
+    const start = filmstripLayout(0, 5);
+    const next = filmstripLayout(3, 5);
+    expect(next.offsetX).toBe(-start.pitch);
+    expect(next.photoY).toBe(start.photoY);
+    expect(filmstripLayout(15, 5).offsetX).toBe(0);
   });
   it("keeps the original Basic and music package prices", () => {
     expect(DEFAULT_ORDER_PRICES).toEqual({ basic: 99, premium: 149 });

@@ -1,12 +1,20 @@
 // Records Christmas photos and music locally; never uploads customer media.
 export const SLIDESHOW_WIDTH = 720;
 export const SLIDESHOW_HEIGHT = 1280;
-// Five photos span the complete 17-second music excerpt (source seconds 27–44).
-export const SLIDESHOW_PHOTO_SECONDS = 17 / 5;
+// Keep the existing music source; the film completes one cycle in 15 seconds.
+export const SLIDESHOW_DURATION_SECONDS = 15;
+export const SLIDESHOW_PHOTO_SECONDS = SLIDESHOW_DURATION_SECONDS / 5;
 const W = SLIDESHOW_WIDTH;
 const H = SLIDESHOW_HEIGHT;
-const PER_PHOTO = SLIDESHOW_PHOTO_SECONDS;
 export const SLIDESHOW_TRANSITION_SECONDS = 0.3;
+
+export function filmstripLayout(t: number, count: number) {
+  const photoHeight = 1024;
+  const photoWidth = photoHeight * 9 / 16;
+  const pitch = photoWidth + 48;
+  const progress = Math.max(0, t) % SLIDESHOW_DURATION_SECONDS / SLIDESHOW_DURATION_SECONDS;
+  return { photoWidth, photoHeight, pitch, offsetX: progress === 0 ? 0 : -progress * count * pitch, photoY: (H - photoHeight) / 2, startX: (W - photoWidth) / 2 };
+}
 
 const VIDEO_TYPES = ["video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/webm;codecs=vp8,opus", "video/webm;codecs=vp9,opus"];
 
@@ -107,39 +115,35 @@ export function drawFilmFrame(ctx: CanvasRenderingContext2D, bitmaps: ImageBitma
   ctx.fillStyle = color("background");
   ctx.fillRect(0, 0, W, H);
 
-  // A classic straight strip, with all five separate frames visible together.
-  const stripX = 104;
-  const stripW = W - stripX * 2;
-  const top = 30;
-  const pitch = 244;
-  const photoX = stripX + 55;
-  const photoW = stripW - 110;
-  const photoH = 224;
+  // Portrait frames travel sideways on a continuous horizontal film reel.
+  const photos = bitmaps.slice(0, 5);
+  const { photoWidth: photoW, photoHeight: photoH, photoY, startX, pitch, offsetX } = filmstripLayout(t, photos.length);
+  const stripTop = photoY - 48;
+  const stripHeight = photoH + 96;
   ctx.fillStyle = color("stock");
-  ctx.fillRect(stripX, 12, stripW, H - 24);
+  ctx.fillRect(0, stripTop, W, stripHeight);
   ctx.strokeStyle = color("edge");
   ctx.lineWidth = 1;
-  ctx.strokeRect(stripX + 1, 13, stripW - 2, H - 26);
+  ctx.strokeRect(-1, stripTop, W + 2, stripHeight);
 
-  bitmaps.slice(0, 5).forEach((photo, index) => {
-    const y = top + index * pitch;
+  for (let slot = -1; slot <= photos.length + 1; slot += 1) {
+    const index = (slot + photos.length) % photos.length;
+    const photo = photos[index];
+    if (!photo) continue;
+    const photoX = startX + slot * pitch + offsetX;
+    if (photoX + photoW < 0 || photoX > W) continue;
     const zoom = 1 + 0.025 * (0.5 + 0.5 * Math.sin(t * 0.4 + index));
-    // Dim same-photo backing fills the frame; the complete portrait stays intact.
-    drawCover(ctx, photo, 0.35, zoom, photoX, y, photoW, photoH);
-    const scale = Math.min(photoW / photo.width, photoH / photo.height);
-    const width = photo.width * scale;
-    const height = photo.height * scale;
-    ctx.drawImage(photo, photoX + (photoW - width) / 2, y + (photoH - height) / 2, width, height);
+    drawCover(ctx, photo, 1, zoom, photoX, photoY, photoW, photoH);
     ctx.strokeStyle = color("edge");
-    ctx.strokeRect(photoX, y, photoW, photoH);
-  });
+    ctx.strokeRect(photoX, photoY, photoW, photoH);
+  }
 
-  // Regular sprocket holes on both black film edges.
-  for (let y = 26; y < H - 26; y += 43) {
-    for (const x of [stripX + 14, stripX + stripW - 37]) {
+  // Sprocket holes move with the upper and lower edges of the reel.
+  for (let x = (offsetX % 48) - 48; x < W + 48; x += 48) {
+    for (const y of [stripTop + 12, stripTop + stripHeight - 35]) {
       ctx.fillStyle = color("perforation");
       ctx.beginPath();
-      ctx.roundRect(x, y, 23, 29, 3);
+      ctx.roundRect(x, y, 29, 23, 3);
       ctx.fill();
       ctx.strokeStyle = color("edge");
       ctx.stroke();
@@ -148,19 +152,19 @@ export function drawFilmFrame(ctx: CanvasRenderingContext2D, bitmaps: ImageBitma
 
   // Restrained vintage treatment: fine grain, edge vignette and soft light leaks.
   ctx.fillStyle = color("tint");
-  ctx.fillRect(stripX, 12, stripW, H - 24);
+  ctx.fillRect(0, stripTop, W, stripHeight);
   const vignette = ctx.createRadialGradient(W / 2, H / 2, W * 0.35, W / 2, H / 2, H * 0.75);
   vignette.addColorStop(0, color("clear"));
   vignette.addColorStop(1, color("vignette"));
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, W, H);
-  const leak = ctx.createLinearGradient(stripX - 20, 0, stripX + 150, H);
+  const leak = ctx.createLinearGradient(0, 0, 170, H);
   leak.addColorStop(0, color("leak"));
   leak.addColorStop(0.45, color("clear"));
   leak.addColorStop(1, color("clear"));
   ctx.globalAlpha = 0.45 + 0.12 * Math.sin(t * 0.7);
   ctx.fillStyle = leak;
-  ctx.fillRect(stripX, 12, stripW, H - 24);
+  ctx.fillRect(0, stripTop, W, stripHeight);
   ctx.globalAlpha = 0.5;
   ctx.translate(-Math.random() * 128, -Math.random() * 128);
   ctx.fillStyle = ctx.createPattern(grain, "repeat") ?? color("clear");
@@ -193,7 +197,7 @@ export async function recordSlideshow(photos: Blob[], music: Blob | null, onProg
     const ctx = canvas.getContext("2d");
     if (!ctx || !canvas.captureStream) throw new Error("Video recording is unavailable here. Please open this page in Safari or Chrome.");
     stream = canvas.captureStream(30);
-    const total = bitmaps.length * PER_PHOTO;
+    const total = SLIDESHOW_DURATION_SECONDS;
     if (music && audioCtx) {
       const buf = await audioCtx.decodeAudioData(await music.arrayBuffer());
       const dest = audioCtx.createMediaStreamDestination();
