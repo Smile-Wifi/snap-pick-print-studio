@@ -1,4 +1,5 @@
 import { InAppBrowserEscape } from "@/components/in-app-browser-escape";
+import { InstallPrompt } from "@/components/install-prompt";
 import { SantaFlyby } from "@/components/santa-flyby";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -135,6 +136,7 @@ function RootComponent() {
       <Outlet />
       <SantaFlyby />
       <InAppBrowserEscape />
+      <InstallPrompt />
       <Toaster richColors position="top-center" />
     </QueryClientProvider>
   );
