@@ -11,7 +11,7 @@ export const SLIDESHOW_TRACKS = [
 ];
 
 export function pickSlideshowTrack(random: () => number = Math.random) {
-  return SLIDESHOW_TRACKS[Math.floor(random() * SLIDESHOW_TRACKS.length) % SLIDESHOW_TRACKS.length];
+  return SLIDESHOW_TRACKS[Math.floor(random() * SLIDESHOW_TRACKS.length) % SLIDESHOW_TRACKS.length]!;
 }
 
 /** Picks a random track after mount (avoids SSR mismatch); re-picks when `key` changes. */
