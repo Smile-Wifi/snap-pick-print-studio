@@ -29,6 +29,23 @@ describe("Meta Muse Christmas edits", () => {
   it("identifies a missing Meta endpoint or model without exposing its response", async () => {
     vi.stubEnv("MODEL_API_KEY", "test-only-key");
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("sensitive upstream body", { status: 404 })));
-    await expect(generateMetaPhoto("data:image/png;base64,aGVsbG8=", "snow")).rejects.toThrow("Meta API endpoint / model not found");
+    await expect(generateMetaPhoto("data:image/png;base64,aGVsbG8=", "snow")).rejects.toThrow("Meta Muse Image is temporarily unavailable (404)");
+  });
+  it("recovers from a temporary 404 with one retry of the same Meta edit", async () => {
+    vi.stubEnv("MODEL_API_KEY", "test-only-key");
+    const request = vi.fn()
+      .mockResolvedValueOnce(new Response("not found", { status: 404 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: [{ b64_json: "aGVsbG8=" }] })));
+    vi.stubGlobal("fetch", request);
+    expect(await generateMetaPhoto("data:image/png;base64,aGVsbG8=", "snow")).toBe("aGVsbG8=");
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request.mock.calls[1]).toEqual(request.mock.calls[0]);
+  });
+  it("stops after one 404 retry without exposing the provider body", async () => {
+    vi.stubEnv("MODEL_API_KEY", "test-only-key");
+    const request = vi.fn().mockImplementation(() => Promise.resolve(new Response("sensitive upstream body", { status: 404 })));
+    vi.stubGlobal("fetch", request);
+    await expect(generateMetaPhoto("data:image/png;base64,aGVsbG8=", "snow")).rejects.toThrow("temporarily unavailable");
+    expect(request).toHaveBeenCalledTimes(2);
   });
 });
