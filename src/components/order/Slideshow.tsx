@@ -100,7 +100,7 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
   }
 
   return (
-    <div className="overflow-hidden rounded-3xl bg-pine-deep p-3 shadow-lg">
+    <div className="overflow-hidden rounded-3xl bg-pine-deep p-3 shadow-lg [&_button]:text-foreground [&_a]:text-foreground">
       <FilmSlideshowPreview images={images} playing={playing} />
       <div className="flex items-center justify-between gap-2 p-3 text-primary-foreground">
         <div className="text-sm">

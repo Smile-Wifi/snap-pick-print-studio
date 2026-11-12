@@ -37,3 +37,4 @@ use the editor.
 - Route Christmas photo edits through Meta Muse using server-only MODEL_API_KEY; map legacy template indices explicitly to provider style IDs to preserve existing orders.
 - Claim paid photo batches conditionally and save all settled results once; parallel renders must not overwrite sibling result slots.
 - Keep the owner-requested homepage demo public and separate from private, token-checked paid order generation; demo calls never create orders.
+- Share the existing slideshow player across homepage and checkout photo tests; available results can play with music without changing paid-order requirements or adding test-attempt quotas.

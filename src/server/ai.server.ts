@@ -11,6 +11,8 @@ export async function generateMetaPhoto(imageBase64: string, style: MetaPhotoSty
   });
   // Never expose provider response bodies: they may contain request credentials.
   if (!response.ok) {
+    console.error("Meta photo edit request failed", { status: response.status, model: "muse-image-1.0", endpoint: "/v1/images/edits", style });
+    if (response.status === 404) throw new Error("Meta API endpoint / model not found - check server function logs (404).");
     if (response.status === 401) throw new Error("Meta could not authorize the request. Check MODEL_API_KEY in Cloud Secrets.");
     if ([402, 403].includes(response.status)) throw new Error("Meta has blocked image creation. Check your Meta account billing and Muse Image access.");
     if (response.status === 429) throw new Error("Meta is busy. Wait a minute before retrying this style.");

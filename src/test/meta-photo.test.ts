@@ -26,4 +26,9 @@ describe("Meta Muse Christmas edits", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("sensitive upstream body", { status: 402 })));
     await expect(generateMetaPhoto("data:image/jpeg;base64,aGVsbG8=", "snow")).rejects.toThrow("Check your Meta account billing");
   });
+  it("identifies a missing Meta endpoint or model without exposing its response", async () => {
+    vi.stubEnv("MODEL_API_KEY", "test-only-key");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("sensitive upstream body", { status: 404 })));
+    await expect(generateMetaPhoto("data:image/png;base64,aGVsbG8=", "snow")).rejects.toThrow("Meta API endpoint / model not found");
+  });
 });

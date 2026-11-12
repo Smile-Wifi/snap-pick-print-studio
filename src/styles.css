@@ -76,6 +76,7 @@
   --color-gold: var(--gold);
   --color-snow: var(--snow);
   --color-ice: var(--ice);
+  --color-film-background: var(--film-background);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
 }
@@ -123,6 +124,20 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
   --page-wash: oklch(0.96 0.025 232 / 0.12);
+  --film-background: oklch(0.16 0.02 153);
+  --film-clear: oklch(0 0 0 / 0);
+  --film-vignette: oklch(0.08 0.01 153 / 0.65);
+  --film-tint: oklch(0.76 0.08 79 / 0.06);
+  --film-light: oklch(0.9 0.12 85);
+  --film-text: oklch(0.99 0.008 91);
+  --film-gold: oklch(0.76 0.15 79);
+  --film-red: oklch(0.54 0.22 27);
+  --film-red-dark: oklch(0.3 0.12 27);
+  --film-green: oklch(0.31 0.09 153);
+  --film-pine: oklch(0.24 0.07 153);
+  --film-needle: oklch(0.42 0.1 153);
+  --film-snow: oklch(0.99 0.008 91);
+  --film-shadow: oklch(0.08 0.01 153 / 0.75);
 }
 
 .dark {

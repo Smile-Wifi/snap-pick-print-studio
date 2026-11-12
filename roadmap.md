@@ -1,5 +1,9 @@
 # Pasko Photo Magic migration
 
+- [x] Include slideshow with music in both public photo tests, without an app-imposed repeat-test quota; real playback and 15-second video export verified.
+- [x] Check the reported Meta creation failure from checkout: all five styles succeeded with the sample portrait; the reported 404 was not reproduced live.
+- [x] Verify the exact Meta JSON edit request, clarify 404 errors safely, and test Snow before another five-style batch.
+
 - [x] Attach the uploaded flag with a rope, animate wind ripples, and verify Santa sound/mute behavior.
 
 - [x] Recreate the uploaded storefront, checkout, customer order/payment/tracking routes, and legal/help pages in the current app.
@@ -23,4 +27,5 @@
 - [ ] Staff Image Generator page using Meta image model (muse-image-1.0) via server function.
 
 - [x] Connect Meta Muse photo edits, homepage snow demo, and payment-verified parallel five-style gallery with downloads/retries.
-- [ ] Verify real Meta renders and paid gallery end-to-end — blocked by Meta HTTP 401; owner must replace MODEL_API_KEY in Cloud Secrets.
+- [x] Verify real Meta renders in homepage and checkout tests: Snow and all five styles succeeded.
+- [ ] Verify paid gallery end-to-end — requires a payment-verified customer order; public demos do not verify this private flow.

@@ -7,6 +7,7 @@ import { generatePaskoPhotos } from "@/lib/pasko-photo.functions";
 import { META_STYLE_IDS, META_STYLE_INDEX } from "@/lib/meta-photo-styles";
 import { dataUrlToBlob, deliverFile } from "@/lib/download";
 import { PaskoPhotoGallery } from "@/components/pasko-photo-gallery";
+import { TestPhotoSlideshow } from "@/components/test-photo-slideshow";
 import Sample from "@/assets/style-original.jpg.asset.json";
 
 export function HomePhotoDemo() {
@@ -39,5 +40,6 @@ export function HomePhotoDemo() {
       <Button type="button" variant="outline" disabled={busy.length > 0} onClick={() => picker.current?.click()}><ImagePlus />Choose photo</Button>
       {!all && <><Button type="button" disabled={busy.length > 0} onClick={() => void generate([2])}>{busy.length ? <LoaderCircle className="animate-spin" /> : <Sparkles />}Generate Snow</Button>{errors[2] && <p role="alert" className="text-destructive">{errors[2]}</p>}{images[2] && <><img src={images[2]} alt="Generated snow portrait" className="w-full rounded-lg" /><Button type="button" variant="outline" onClick={() => { const u = images[2]; if (u) void deliverFile(dataUrlToBlob(u), "pasko-snow.png"); }}><Download />Download</Button><Button type="button" disabled={busy.length > 0} onClick={() => { setAll(true); void generate([0, 1, 3, 4]); }}><Sparkles />Generate All 5 Styles</Button></>}</>}
       {all && <PaskoPhotoGallery images={images} errors={errors} busy={busy} retry={i => void generate([i])} />}
+      {!busy.length && <TestPhotoSlideshow images={images} />}
     </DialogContent></Dialog></div>;
 }
