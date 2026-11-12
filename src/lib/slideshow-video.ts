@@ -1,7 +1,8 @@
 // Records Christmas photos and music locally; never uploads customer media.
 export const SLIDESHOW_WIDTH = 720;
 export const SLIDESHOW_HEIGHT = 1280;
-export const SLIDESHOW_PHOTO_SECONDS = 3;
+// Five photos span the complete 17-second music excerpt (source seconds 27–44).
+export const SLIDESHOW_PHOTO_SECONDS = 17 / 5;
 const W = SLIDESHOW_WIDTH;
 const H = SLIDESHOW_HEIGHT;
 const MAIN_H = H;

@@ -120,7 +120,7 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
         {making !== null ? (
           <div>
             <Progress value={making * 100} />
-            <p className="mt-1 flex items-center gap-1 text-xs"><Loader2 className="h-3 w-3 animate-spin" /> Creating your slideshow video with music… about 15 seconds. Keep this page open.</p>
+            <p className="mt-1 flex items-center gap-1 text-xs"><Loader2 className="h-3 w-3 animate-spin" /> Creating your slideshow video with music… about 17 seconds. Keep this page open.</p>
           </div>
         ) : video ? (
           <div className="space-y-3">

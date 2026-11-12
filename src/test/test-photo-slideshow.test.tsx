@@ -1,6 +1,7 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { TestPhotoSlideshow } from "@/components/test-photo-slideshow";
+import SlideshowMusic from "@/assets/kampana-ng-simbahan-27-44s.mp3.asset.json";
 
 const captured = vi.hoisted(() => ({ props: [] as { images: string[]; musicUrl: string }[] }));
 vi.mock("@/components/order/Slideshow", () => ({ Slideshow: (props: { images: string[]; musicUrl: string }) => { captured.props.push(props); return null; } }));
@@ -11,7 +12,7 @@ describe("Public test slideshow results", () => {
   it("accepts one available result without requiring five successes", () => {
     render(<TestPhotoSlideshow images={[null, null, photo, null, null]} />);
     expect(captured.props[0]?.images).toEqual([photo]);
-    expect(captured.props[0]?.musicUrl).toBeTruthy();
+    expect(captured.props[0]?.musicUrl).toBe(SlideshowMusic.url);
   });
   it("passes all five successful results to the music video player", () => {
     render(<TestPhotoSlideshow images={Array(5).fill(photo)} />);

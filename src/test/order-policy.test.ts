@@ -7,7 +7,7 @@ describe("Pasko order rules", () => {
     expect(SLIDESHOW_WIDTH).toBe(720);
     expect(SLIDESHOW_HEIGHT).toBe(1280);
     expect(SLIDESHOW_WIDTH / SLIDESHOW_HEIGHT).toBe(9 / 16);
-    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(15);
+    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(44 - 27);
   });
   it("keeps the original Basic and music package prices", () => {
     expect(DEFAULT_ORDER_PRICES).toEqual({ basic: 99, premium: 149 });

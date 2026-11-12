@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Replace test and premium slideshow music with Kampana Ng Simbahan, source seconds 27–44; align the five-photo video to the full 17-second excerpt and keep Santa audio unchanged.
+
 - [x] Audit 17 page URLs and available private entry screens: no observed crashes; database healthy and no captured visitor errors. Parallel checkout reduced five-photo time from 62.78s to 20.44s in the measured runs; all 28 tests passed. Authenticated staff actions and paid orders remain unverified without an authorized session/order.
 
 - [x] Automatically assemble the premium five-photo video with Christmas bells; shared-player download verified as 720×1280, 15 seconds, with audio and all five photos in the ZIP. No customer orders exist for a paid-order end-to-end check.
@@ -18,7 +20,7 @@
 - [ ] Handoff missing customer/user/file exports and any provider setup required for production; do not cut over the published site before verification.
 - [x] Photo creation now uses the built-in AI (Replicate removed).
 - [x] Staff "Test photo" and "Test Santa" buttons; restored premium slideshow and download tools from the backup.
-- [ ] Premium slideshow music: needs a song file from the owner.
+- [x] Premium slideshow music: owner supplied Kampana Ng Simbahan; use seconds 27–44.
 - [x] Manual payment verification system (Maya + GoTyme QR uploaded by owner): pending_verification status, reference number + optional screenshot, waiting screen.
 - [x] PIN-only staff login (owner-chosen PIN, stored hashed server-side) gating the /staff dashboard.
 - [x] Staff verification dashboard: pending/approved/rejected views, approve/reject buttons, new-payment alerts (15s poll + toast + browser notification).
