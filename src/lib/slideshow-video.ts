@@ -5,10 +5,8 @@ export const SLIDESHOW_HEIGHT = 1280;
 export const SLIDESHOW_PHOTO_SECONDS = 17 / 5;
 const W = SLIDESHOW_WIDTH;
 const H = SLIDESHOW_HEIGHT;
-const MAIN_H = H;
 const PER_PHOTO = SLIDESHOW_PHOTO_SECONDS;
 export const SLIDESHOW_TRANSITION_SECONDS = 0.3;
-const FADE = SLIDESHOW_TRANSITION_SECONDS;
 
 const VIDEO_TYPES = ["video/mp4;codecs=avc1,mp4a.40.2", "video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/webm;codecs=vp8,opus", "video/webm;codecs=vp9,opus"];
 
@@ -99,181 +97,74 @@ export async function loadFilmPhoto(photo: Blob): Promise<ImageBitmap> {
   } finally { original.close(); }
 }
 
-// Full-height Christmas composition shared by playback and downloaded recordings.
+// The same five-photo filmstrip is drawn in playback and the downloaded video.
 export function drawFilmFrame(ctx: CanvasRenderingContext2D, bitmaps: ImageBitmap[], t: number, grain: HTMLCanvasElement) {
   if (!bitmaps.length) return;
   const tokens = getComputedStyle(document.documentElement);
   const color = (name: string) => tokens.getPropertyValue(`--film-${name}`).trim();
-  const idx = Math.min(Math.floor(t / PER_PHOTO), bitmaps.length - 1);
-  const local = t - idx * PER_PHOTO;
+  ctx.save();
   ctx.filter = "none";
   ctx.fillStyle = color("background");
   ctx.fillRect(0, 0, W, H);
-  const current = bitmaps[idx];
-  const motion = 1 - Math.pow(1 - Math.min(local / PER_PHOTO, 1), 2);
-  if (current) drawCover(ctx, current, 1, 1 + 0.14 * motion, 0, 0, W, MAIN_H);
-  const next = bitmaps[(idx + 1) % bitmaps.length];
-  if (next && local > PER_PHOTO - FADE) drawCover(ctx, next, (local - (PER_PHOTO - FADE)) / FADE, 1, 0, 0, W, MAIN_H);
 
-  // Warm tint + vignette + grain
+  // A classic straight strip, with all five separate frames visible together.
+  const stripX = 104;
+  const stripW = W - stripX * 2;
+  const top = 30;
+  const pitch = 244;
+  const photoX = stripX + 55;
+  const photoW = stripW - 110;
+  const photoH = 224;
+  ctx.fillStyle = color("stock");
+  ctx.fillRect(stripX, 12, stripW, H - 24);
+  ctx.strokeStyle = color("edge");
+  ctx.lineWidth = 1;
+  ctx.strokeRect(stripX + 1, 13, stripW - 2, H - 26);
+
+  bitmaps.slice(0, 5).forEach((photo, index) => {
+    const y = top + index * pitch;
+    const zoom = 1 + 0.025 * (0.5 + 0.5 * Math.sin(t * 0.4 + index));
+    // Dim same-photo backing fills the frame; the complete portrait stays intact.
+    drawCover(ctx, photo, 0.35, zoom, photoX, y, photoW, photoH);
+    const scale = Math.min(photoW / photo.width, photoH / photo.height);
+    const width = photo.width * scale;
+    const height = photo.height * scale;
+    ctx.drawImage(photo, photoX + (photoW - width) / 2, y + (photoH - height) / 2, width, height);
+    ctx.strokeStyle = color("edge");
+    ctx.strokeRect(photoX, y, photoW, photoH);
+  });
+
+  // Regular sprocket holes on both black film edges.
+  for (let y = 26; y < H - 26; y += 43) {
+    for (const x of [stripX + 14, stripX + stripW - 37]) {
+      ctx.fillStyle = color("perforation");
+      ctx.beginPath();
+      ctx.roundRect(x, y, 23, 29, 3);
+      ctx.fill();
+      ctx.strokeStyle = color("edge");
+      ctx.stroke();
+    }
+  }
+
+  // Restrained vintage treatment: fine grain, edge vignette and soft light leaks.
   ctx.fillStyle = color("tint");
+  ctx.fillRect(stripX, 12, stripW, H - 24);
+  const vignette = ctx.createRadialGradient(W / 2, H / 2, W * 0.35, W / 2, H / 2, H * 0.75);
+  vignette.addColorStop(0, color("clear"));
+  vignette.addColorStop(1, color("vignette"));
+  ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, W, H);
-  const vg = ctx.createRadialGradient(W / 2, MAIN_H / 2, W * 0.3, W / 2, MAIN_H / 2, W * 0.95);
-  vg.addColorStop(0, color("clear"));
-  vg.addColorStop(1, color("vignette"));
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, W, MAIN_H);
-  ctx.save();
+  const leak = ctx.createLinearGradient(stripX - 20, 0, stripX + 150, H);
+  leak.addColorStop(0, color("leak"));
+  leak.addColorStop(0.45, color("clear"));
+  leak.addColorStop(1, color("clear"));
+  ctx.globalAlpha = 0.45 + 0.12 * Math.sin(t * 0.7);
+  ctx.fillStyle = leak;
+  ctx.fillRect(stripX, 12, stripW, H - 24);
+  ctx.globalAlpha = 0.5;
   ctx.translate(-Math.random() * 128, -Math.random() * 128);
   ctx.fillStyle = ctx.createPattern(grain, "repeat") ?? color("clear");
   ctx.fillRect(0, 0, W + 128, H + 128);
-  ctx.restore();
-
-  // Soft warm lights along the outer edges, leaving faces unobscured.
-  for (let i = 0; i < 16; i++) {
-    const x = i % 2 ? W - 20 - (i % 4) * 12 : 20 + (i % 4) * 12;
-    const y = 65 + i * 73;
-    const radius = 18 + (i % 3) * 8;
-    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
-    glow.addColorStop(0, color("light"));
-    glow.addColorStop(1, color("clear"));
-    ctx.save();
-    ctx.globalAlpha = 0.22 + 0.12 * Math.sin(t * 0.9 + i);
-    ctx.fillStyle = glow;
-    ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-    ctx.restore();
-  }
-
-  // Evergreen sprigs and shaded glass ornaments in both upper corners.
-  for (const side of [1, -1]) {
-    ctx.save();
-    ctx.translate(side === 1 ? 0 : W, 0);
-    ctx.scale(side, 1);
-    ctx.lineCap = "round";
-    for (let branch = 0; branch < 5; branch++) {
-      ctx.save();
-      ctx.rotate(0.12 + branch * 0.22);
-      ctx.strokeStyle = color("pine");
-      ctx.lineWidth = 5;
-      ctx.beginPath(); ctx.moveTo(-10, 8); ctx.lineTo(215 - branch * 14, 24); ctx.stroke();
-      for (let needle = 0; needle < 22; needle++) {
-        const x = needle * 9;
-        ctx.strokeStyle = needle % 2 ? color("needle") : color("pine");
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x, 23); ctx.lineTo(x + 17, 23 - 26 + needle * 0.65);
-        ctx.moveTo(x, 23); ctx.lineTo(x + 17, 23 + 26 - needle * 0.65);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-    for (let ornament = 0; ornament < 3; ornament++) {
-      const x = 38 + ornament * 64;
-      const y = 110 + (ornament % 2) * 48;
-      const r = 22 + (ornament % 2) * 6;
-      ctx.strokeStyle = color("gold"); ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, y - r); ctx.stroke();
-      const glass = ctx.createRadialGradient(x - 8, y - 9, 2, x, y, r);
-      glass.addColorStop(0, color("text"));
-      glass.addColorStop(0.22, color(ornament % 2 ? "gold" : "red"));
-      glass.addColorStop(1, color(ornament % 2 ? "light" : "red-dark"));
-      ctx.fillStyle = glass; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = color("gold"); ctx.fillRect(x - 5, y - r - 6, 10, 7);
-    }
-    ctx.restore();
-  }
-
-  // Gentle cinematic gold light sweep, never a strobe or full-frame flash.
-  ctx.save();
-  ctx.globalAlpha = 0.16;
-  const sweepX = ((t * 115) % (W * 2)) - W / 2;
-  const sweep = ctx.createLinearGradient(sweepX - 150, 0, sweepX + 150, MAIN_H);
-  sweep.addColorStop(0, color("clear"));
-  sweep.addColorStop(0.5, color("light"));
-  sweep.addColorStop(1, color("clear"));
-  ctx.fillStyle = sweep;
-  ctx.fillRect(0, 0, W, MAIN_H);
-  ctx.restore();
-
-  // Deterministic layered snowfall: identical in the player and local recording.
-  ctx.save();
-  ctx.fillStyle = color("snow");
-  for (let i = 0; i < 100; i++) {
-    const depth = (i % 3) + 1;
-    const x = ((i * 137.5 + Math.sin(t * 0.6 + i) * 28 + t * 12) % W + W) % W;
-    const y = ((i * 83.7 + t * (24 + depth * 16)) % (H + 20)) - 10;
-    ctx.globalAlpha = 0.3 + depth * 0.17;
-    ctx.beginPath();
-    ctx.arc(x, y, depth * 1.25, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.restore();
-
-  // Snow bank at the bottom edge.
-  ctx.fillStyle = color("snow");
-  ctx.beginPath(); ctx.moveTo(0, H);
-  ctx.lineTo(0, H - 27);
-  for (let x = 0; x <= W; x += 8) ctx.lineTo(x, H - 25 - Math.sin(x / 80) * 9);
-  ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
-
-  // Only the Christmas greeting and ribbon signature are drawn as text.
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.letterSpacing = "0px";
-  const title = christmasTitleMotion(t);
-  if (title.opacity > 0 && title.scale > 0) {
-    ctx.save(); ctx.globalAlpha = title.opacity;
-    ctx.translate(W / 2, H * 0.46); ctx.scale(title.scale, title.scale);
-    const festive = ctx.createLinearGradient(0, -28, 0, 28);
-    festive.addColorStop(0, color("red")); festive.addColorStop(0.48, color("red"));
-    festive.addColorStop(0.52, color("green")); festive.addColorStop(1, color("green"));
-    ctx.font = "900 62px Outfit, sans-serif";
-    ctx.shadowColor = color("shadow"); ctx.shadowBlur = 16;
-    ctx.lineWidth = 7; ctx.strokeStyle = color("snow");
-    ctx.strokeText("MERRY CHRISTMAS", 0, 0, W - 80);
-    ctx.fillStyle = festive; ctx.fillText("MERRY CHRISTMAS", 0, 0, W - 80);
-    ctx.shadowBlur = 0;
-    // Santa cap perched on the first letter.
-    ctx.fillStyle = color("red"); ctx.beginPath();
-    ctx.moveTo(-304, -31); ctx.quadraticCurveTo(-299, -109, -244, -78);
-    ctx.quadraticCurveTo(-275, -80, -266, -32); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = color("snow"); ctx.lineWidth = 12;
-    ctx.beginPath(); ctx.moveTo(-305, -32); ctx.lineTo(-265, -32); ctx.stroke();
-    ctx.fillStyle = color("snow"); ctx.beginPath(); ctx.arc(-244, -78, 10, 0, Math.PI * 2); ctx.fill();
-    // Holly leaves, red berries, and tiny gold star glints.
-    for (const side of [-1, 1]) {
-      ctx.fillStyle = color("green");
-      for (const angle of [-0.5, 0.5]) {
-        ctx.save(); ctx.translate(side * 277, 46); ctx.rotate(angle);
-        ctx.beginPath(); ctx.ellipse(0, 0, 21, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-      }
-      ctx.fillStyle = color("red");
-      for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(side * 277 + i * 6 - 6, 48 + (i % 2) * 6, 4, 0, Math.PI * 2); ctx.fill(); }
-    }
-    ctx.strokeStyle = color("gold"); ctx.lineWidth = 2;
-    for (let i = 0; i < 10; i++) {
-      const x = -290 + i * 65; const y = i % 2 ? 68 : -63;
-      const r = 3 + 3 * (0.5 + 0.5 * Math.sin(t * 3 + i));
-      ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r); ctx.lineTo(x, y + r); ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  // Permanent red ribbon, safely above the snow and phone playback controls.
-  const ribbonY = H - 155;
-  ctx.save();
-  ctx.fillStyle = color("red-dark");
-  for (const side of [-1, 1]) {
-    ctx.beginPath(); ctx.moveTo(W / 2 + side * 240, ribbonY - 22);
-    ctx.lineTo(W / 2 + side * 326, ribbonY - 22); ctx.lineTo(W / 2 + side * 306, ribbonY + 15);
-    ctx.lineTo(W / 2 + side * 326, ribbonY + 56); ctx.lineTo(W / 2 + side * 240, ribbonY + 56); ctx.closePath(); ctx.fill();
-  }
-  ctx.fillStyle = color("red"); ctx.shadowColor = color("shadow"); ctx.shadowBlur = 14;
-  ctx.fillRect(76, ribbonY - 34, W - 152, 81);
-  ctx.shadowBlur = 0; ctx.strokeStyle = color("gold"); ctx.lineWidth = 1.5;
-  ctx.strokeRect(82, ribbonY - 28, W - 164, 69);
-  ctx.fillStyle = color("text"); ctx.font = "46px 'Great Vibes', cursive";
-  ctx.fillText("PINOY PHOTO MAGIC", W / 2, ribbonY + 8, W - 190);
   ctx.restore();
 }
 

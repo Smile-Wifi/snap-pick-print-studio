@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Replace slideshow visuals with a 9:16 five-frame vintage filmstrip; preview and real 720×1280 video export verified with audio and 17-second duration, leaving the Christmas music unchanged.
+
 - [x] Add iOS/Android home-screen metadata, app icons, and phone safe-area support without offline caching; emulated phone layouts and upload/continue flow passed, with real-device installation still unverified.
 
 - [x] Replace test and premium slideshow music with Kampana Ng Simbahan, source seconds 27–44; align the five-photo video to the full 17-second excerpt and keep Santa audio unchanged.

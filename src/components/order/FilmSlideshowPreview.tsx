@@ -45,7 +45,7 @@ export function FilmSlideshowPreview({ images, playing }: { images: string[]; pl
     return () => cancelAnimationFrame(frame);
   }, [playing, photos]);
 
-  return <div className="relative mx-auto aspect-[9/16] w-full max-w-sm overflow-hidden rounded-2xl bg-film-background">
+  return <div className="relative mx-auto aspect-[9/16] w-full max-w-sm overflow-hidden rounded-md bg-film-background">
     {images[0] && <img src={images[0]} alt="Christmas slideshow" className="absolute inset-0 h-full w-full object-cover" />}
     <canvas ref={canvas} width={SLIDESHOW_WIDTH} height={SLIDESHOW_HEIGHT} aria-label="Christmas film-strip slideshow" className="relative h-full w-full" />
   </div>;
