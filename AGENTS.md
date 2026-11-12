@@ -40,3 +40,4 @@ use the editor.
 - Share the existing slideshow player across homepage and checkout photo tests; available results can play with music without changing paid-order requirements or adding test-attempt quotas.
 - Start checkout test styles concurrently and settle each slot independently; a slow or failed provider response must not delay starting sibling styles.
 - Start premium video assembly when all five order results are available, using the shared local recorder; retain a manual audio-permission fallback and a separate download tap for mobile browsers.
+- Keep phone installation manifest-only with public app icons and root head metadata; no app-shell service worker unless offline use is explicitly requested, preventing stale previews and private-photo caching.

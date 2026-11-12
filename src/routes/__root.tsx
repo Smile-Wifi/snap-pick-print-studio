@@ -82,7 +82,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // twitter:image here: every page without its own would inherit the root's preview image.
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#043f21" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Pasko Magic" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { title: "Pasko Photo Magic – Balik Alaala sa Pasko" },
       { name: "description", content: "Turn one old photo into five magical Christmas portraits for the whole family." },
       { property: "og:title", content: "Pasko Photo Magic – Balik Alaala sa Pasko" },
@@ -95,7 +99,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "64x64" },
     ],
   }),
   shellComponent: RootShell,

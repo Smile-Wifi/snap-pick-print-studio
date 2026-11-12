@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Add iOS/Android home-screen metadata, app icons, and phone safe-area support without offline caching; emulated phone layouts and upload/continue flow passed, with real-device installation still unverified.
+
 - [x] Replace test and premium slideshow music with Kampana Ng Simbahan, source seconds 27–44; align the five-photo video to the full 17-second excerpt and keep Santa audio unchanged.
 
 - [x] Audit 17 page URLs and available private entry screens: no observed crashes; database healthy and no captured visitor errors. Parallel checkout reduced five-photo time from 62.78s to 20.44s in the measured runs; all 28 tests passed. Authenticated staff actions and paid orders remain unverified without an authorized session/order.

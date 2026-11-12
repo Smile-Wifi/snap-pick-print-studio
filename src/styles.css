@@ -179,7 +179,18 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
   }
+}
+
+/* Prevent iPhone focus zoom while keeping browser pinch-to-zoom available. */
+@media (max-width: 700px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select { font-size: 16px; }
 }
 
 .brand-name,
@@ -825,6 +836,12 @@
 .santa-sound-toggle:hover, .santa-fly-test:hover { transform: scale(1.08); background: oklch(0.38 0.1 25 / 0.95); }
 .santa-sound-toggle[aria-pressed="true"] { background: var(--gold); color: oklch(0.32 0.09 25); }
 .santa-fly-test { left: 64px; }
+
+.santa-sound-toggle, .santa-fly-test {
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+.santa-sound-toggle { left: calc(12px + env(safe-area-inset-left, 0px)); }
+.santa-fly-test { left: calc(64px + env(safe-area-inset-left, 0px)); }
 
 /* Manual payment verification */
 .qr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 14px 0; }
