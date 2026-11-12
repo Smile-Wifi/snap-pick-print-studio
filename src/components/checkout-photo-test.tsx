@@ -25,9 +25,8 @@ export function CheckoutPhotoTest({ photo, template, pkg = "basic" }: { photo: s
   async function generate() {
     if (busy) return;
     setBusy(true);
-    setSlots(emptySlots());
-    for (const index of order) {
-      setSlots((p) => p.map((s, i) => (i === index ? { ...s, busy: true } : s)));
+    setSlots(emptySlots().map(slot => ({ ...slot, busy: true })));
+    await Promise.allSettled(order.map(async index => {
       try {
         const renderIndex = STYLES.findIndex(style => style.key === photoStyles[index]?.key);
         const r = await run({ data: { photo, index: renderIndex } });
@@ -36,7 +35,7 @@ export function CheckoutPhotoTest({ photo, template, pkg = "basic" }: { photo: s
         const message = e instanceof Error ? e.message : "Photo test failed. Please try again.";
         setSlots((p) => p.map((s, i) => (i === index ? { image: "", error: message, busy: false } : s)));
       }
-    }
+    }));
     setBusy(false);
   }
 

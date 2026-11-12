@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Audit 17 page URLs and available private entry screens: no observed crashes; database healthy and no captured visitor errors. Parallel checkout reduced five-photo time from 62.78s to 20.44s in the measured runs; all 28 tests passed. Authenticated staff actions and paid orders remain unverified without an authorized session/order.
+
 - [x] Automatically assemble the premium five-photo video with Christmas bells; shared-player download verified as 720×1280, 15 seconds, with audio and all five photos in the ZIP. No customer orders exist for a paid-order end-to-end check.
 
 - [x] Include slideshow with music in both public photo tests, without an app-imposed repeat-test quota; real playback and 15-second video export verified.
