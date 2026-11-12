@@ -38,3 +38,4 @@ use the editor.
 - Claim paid photo batches conditionally and save all settled results once; parallel renders must not overwrite sibling result slots.
 - Keep the owner-requested homepage demo public and separate from private, token-checked paid order generation; demo calls never create orders.
 - Share the existing slideshow player across homepage and checkout photo tests; available results can play with music without changing paid-order requirements or adding test-attempt quotas.
+- Start premium video assembly when all five order results are available, using the shared local recorder; retain a manual audio-permission fallback and a separate download tap for mobile browsers.

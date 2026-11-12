@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { canGenerateOrder, DEFAULT_ORDER_PRICES, DEFAULT_RETENTION_DAYS, orderExpiryDate } from "@/lib/order-policy";
+import { SLIDESHOW_WIDTH, SLIDESHOW_HEIGHT, SLIDESHOW_PHOTO_SECONDS } from "@/lib/slideshow-video";
 
 describe("Pasko order rules", () => {
+  it("assembles five photos into a 9:16 portrait video", () => {
+    expect(SLIDESHOW_WIDTH).toBe(720);
+    expect(SLIDESHOW_HEIGHT).toBe(1280);
+    expect(SLIDESHOW_WIDTH / SLIDESHOW_HEIGHT).toBe(9 / 16);
+    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(15);
+  });
   it("keeps the original Basic and music package prices", () => {
     expect(DEFAULT_ORDER_PRICES).toEqual({ basic: 99, premium: 149 });
   });

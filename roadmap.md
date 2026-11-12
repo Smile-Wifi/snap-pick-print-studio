@@ -1,5 +1,7 @@
 # Pasko Photo Magic migration
 
+- [x] Automatically assemble the premium five-photo video with Christmas bells; shared-player download verified as 720×1280, 15 seconds, with audio and all five photos in the ZIP. No customer orders exist for a paid-order end-to-end check.
+
 - [x] Include slideshow with music in both public photo tests, without an app-imposed repeat-test quota; real playback and 15-second video export verified.
 - [x] Check the reported Meta creation failure from checkout: all five styles succeeded with the sample portrait; the reported 404 was not reproduced live.
 - [x] Verify the exact Meta JSON edit request, clarify 404 errors safely, and test Snow before another five-style batch.
