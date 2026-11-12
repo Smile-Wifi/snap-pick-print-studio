@@ -1,8 +1,8 @@
 // Records Christmas photos and music locally; never uploads customer media.
 export const SLIDESHOW_WIDTH = 720;
 export const SLIDESHOW_HEIGHT = 1280;
-// Keep the existing music source; the film completes one cycle in 15 seconds.
-export const SLIDESHOW_DURATION_SECONDS = 15;
+// Keep the existing music source; the film completes one cycle in 30 seconds.
+export const SLIDESHOW_DURATION_SECONDS = 30;
 export const SLIDESHOW_PHOTO_SECONDS = SLIDESHOW_DURATION_SECONDS / 5;
 const W = SLIDESHOW_WIDTH;
 const H = SLIDESHOW_HEIGHT;
@@ -248,7 +248,7 @@ export async function recordSlideshow(photos: Blob[], music: Blob | null, onProg
         source?.start();
         const start = performance.now();
         // A timer (not animation frames) keeps 30fps even in embedded/background views,
-        // so the file always has a full 15 seconds of frames.
+        // so the file always has a full 30 seconds of frames.
         const track = stream?.getVideoTracks()[0] as (MediaStreamTrack & { requestFrame?: () => void }) | undefined;
         const tick = () => {
           if (stopped) return;

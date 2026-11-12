@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { packages, peso, STATUS_LABEL } from "@/lib/pasko-content";
 import { PaidPhotoGallery } from "@/components/paid-photo-gallery";
-import SlideshowMusic from "@/assets/kampana-ng-simbahan-27-44s.mp3.asset.json";
+import { useRandomSlideshowTrack } from "@/lib/slideshow-music";
 import { Slideshow } from "@/components/order/Slideshow";
 import { getCustomerOrder, submitPaymentProof } from "@/lib/orders.functions";
 import MayaQr from "@/assets/maya-qr.jpeg.asset.json";
@@ -36,6 +36,7 @@ const QR_OPTIONS = [
 ] as const;
 
 function OrderPage() {
+  const slideshowTrack = useRandomSlideshowTrack();
   const { reference } = Route.useParams();
   const { t } = Route.useSearch();
   const order = Route.useLoaderData();
@@ -140,7 +141,7 @@ function OrderPage() {
       <aside className="order-photo-aside">
         <h2 className="step-heading"><Image size={19} /> Your photos</h2>
         {["payment_verified", "processing", "failed", "completed"].includes(order.status) ? <PaidPhotoGallery reference={reference} token={t} status={order.status} images={order.resultSlots} error={order.generationError} onBusy={setCreating} /> : <div className="result-placeholder"><span className="upload-icon"><Clock3 /></span><strong>Your photos will appear here</strong><p>Five Christmas portraits are created after payment is confirmed.</p></div>}
-        {order.pkg === "premium" && order.results.length === 5 && <Slideshow images={order.results} musicUrl={SlideshowMusic.url} musicTitle="Kampana Ng Simbahan" fileName={`${reference}-slideshow`} autoStart />}
+        {order.pkg === "premium" && order.results.length === 5 && slideshowTrack && <Slideshow images={order.results} musicUrl={slideshowTrack?.url ?? ""} musicTitle={slideshowTrack?.title ?? ""} fileName={`${reference}-slideshow`} autoStart />}
         {order.originalUrl && <details className="original-photo-details"><summary>View uploaded photo</summary><a href={order.originalUrl} target="_blank" rel="noreferrer"><img src={order.originalUrl} alt="Uploaded original photo" /><span>Open original <ExternalLink size={14} /></span></a></details>}
         <p className="summary-privacy"><LockKeyhole size={12} className="inline-block align-middle" /> Private link · Photos deleted after 30 days</p>
       </aside>

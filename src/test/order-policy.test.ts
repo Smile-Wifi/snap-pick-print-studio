@@ -7,19 +7,19 @@ describe("Pasko order rules", () => {
     expect(SLIDESHOW_WIDTH).toBe(720);
     expect(SLIDESHOW_HEIGHT).toBe(1280);
     expect(SLIDESHOW_WIDTH / SLIDESHOW_HEIGHT).toBe(9 / 16);
-    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(15);
-    expect(SLIDESHOW_DURATION_SECONDS).toBe(15);
+    expect(5 * SLIDESHOW_PHOTO_SECONDS).toBe(30);
+    expect(SLIDESHOW_DURATION_SECONDS).toBe(30);
   });
   it("uses 9:16 portrait photo frames", () => {
     const frame = filmstripLayout(0, 5);
     expect(frame.photoWidth / frame.photoHeight).toBe(9 / 16);
   });
-  it("scrolls horizontally through five photos and loops after 15 seconds", () => {
+  it("scrolls horizontally through five photos and loops after 30 seconds", () => {
     const start = filmstripLayout(0, 5);
-    const next = filmstripLayout(3, 5);
+    const next = filmstripLayout(6, 5);
     expect(next.offsetX).toBe(-start.pitch);
     expect(next.photoY).toBe(start.photoY);
-    expect(filmstripLayout(15, 5).offsetX).toBe(0);
+    expect(filmstripLayout(30, 5).offsetX).toBe(0);
   });
   it("keeps the original Basic and music package prices", () => {
     expect(DEFAULT_ORDER_PRICES).toEqual({ basic: 99, premium: 149 });
