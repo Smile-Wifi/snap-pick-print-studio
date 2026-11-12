@@ -78,7 +78,7 @@ export const getCustomerOrder = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!order || order.access_token !== data.token) return null;
 
-    const signed = await signPaths(ORDER_BUCKET, [order.original_path, ...(order.status === "completed" ? order.result_paths : [])]);
+    const signed = await signPaths(ORDER_BUCKET, [order.original_path, ...order.result_paths]);
     const settings = await getSettings();
     return {
       reference: order.reference,
@@ -92,6 +92,8 @@ export const getCustomerOrder = createServerFn({ method: "POST" })
       createdAt: order.created_at,
       expiresAt: order.expires_at,
       originalUrl: signed[order.original_path] ?? null,
+      resultSlots: Array.from({ length: 5 }, (_, i) => order.result_paths[i] ? signed[order.result_paths[i] ?? ""] ?? null : null),
+      generationError: order.status === "failed" ? "This style did not finish. Retry to create the missing photo." : null,
       results: order.result_paths.map((path) => path ? signed[path] : null).filter((url): url is string => Boolean(url)),
       payTo: settings.payment[order.payment_method as "gcash" | "maya" | "bank"],
       paymentSettings: settings.payment,

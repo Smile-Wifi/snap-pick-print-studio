@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
+import { HomePhotoDemo } from "@/components/home-photo-demo";
 import { Button } from "@/components/ui/button";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { howItWorks, packages, photoStyles } from "@/lib/pasko-content";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   return <div className="backdrop-page"><SiteHeader /><main className="home-content">
     <section className="hero-poster" aria-label="Pasko Photo Magic Christmas portraits"><img className="hero-backdrop" src={ChristmasStudio.url} alt="" /><img className="hero-artwork" src={StudioArtwork.url} alt="Pasko Photo Magic: turn your old photo into 5 amazing Christmas photos. Original portrait beside five illustrative Christmas transformations." /></section>
+    <HomePhotoDemo />
     <section className="content-section" id="pricing" aria-labelledby="pricing-heading">
       <p className="page-eyebrow">Make this Christmas one to remember</p><h1 className="section-heading" id="pricing-heading">Five joyful portraits from one favorite photo</h1>
       <p className="section-lede">Made for sharing with the people you love.</p><img className="package-art" src={PackageChoices.url} alt="Basic Magic and Magic with Music package choices" />

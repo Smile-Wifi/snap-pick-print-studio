@@ -1,43 +1,35 @@
-import { STYLES } from "@/lib/pasko-content";
+import { META_STYLE_INDEX, META_STYLE_IDS, metaPhotoPrompt, type MetaPhotoStyle } from "@/lib/meta-photo-styles";
 
-const identityRule = "Preserve each person's exact face, age, skin tone, facial features, gaze, and head angle from the uploaded photo. Keep the same number of people; do not add or remove anyone. Change only clothing and Christmas surroundings. Photorealistic, natural anatomy, no text or watermark.";
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
-const MODEL = "openai/gpt-image-2.5-sunburst";
+export async function generateMetaPhoto(imageBase64: string, style: MetaPhotoStyle) {
+  const apiKey = process.env["MODEL_API_KEY"];
+  if (!apiKey) throw new Error("Add MODEL_API_KEY in Cloud → Secrets before creating photos.");
+  if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(imageBase64) || imageBase64.length > 14_000_000) throw new Error("Choose a JPG, PNG or WEBP photo up to 10 MB.");
+  const response = await fetch("https://api.meta.ai/v1/images/edits", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "muse-image-1.0", prompt: metaPhotoPrompt(style), images: [{ image_url: imageBase64 }], n: 1, output_format: "png" }),
+  });
+  // Never expose provider response bodies: they may contain request credentials.
+  if (!response.ok) {
+    if (response.status === 401) throw new Error("Meta could not authorize the request. Check MODEL_API_KEY in Cloud Secrets.");
+    if ([402, 403].includes(response.status)) throw new Error("Meta has blocked image creation. Check your Meta account billing and Muse Image access.");
+    if (response.status === 429) throw new Error("Meta is busy. Wait a minute before retrying this style.");
+    throw new Error(`Meta photo creation failed (${response.status}).`);
+  }
+  const data = await response.json() as { data?: { b64_json?: string }[] };
+  const image = data.data?.[0]?.b64_json;
+  if (!image || !/^[A-Za-z0-9+/=]+$/.test(image)) throw new Error("Meta returned no PNG photo.");
+  return image;
+}
 
-// Uses Lovable's built-in AI to restyle the customer's photo into one Christmas scene.
 export async function generateChristmasPhoto(original: Blob, styleIndex: number) {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) throw new Error("Photo creation is not set up yet.");
-  const style = STYLES[styleIndex];
+  const style = META_STYLE_IDS.find(id => META_STYLE_INDEX[id] === styleIndex);
   if (!style) throw new Error("Unknown Christmas style.");
   if (!original.size || original.size > 10 * 1024 * 1024) throw new Error("The original photo is missing or too large.");
-
-  const form = new FormData();
-  form.set("model", MODEL);
-  form.set("prompt", `${style.prompt} ${identityRule}`);
-  form.set("size", "1024x1536");
-  form.set("output_format", "png");
-  form.set("image", new File([original], "original.png", { type: original.type || "image/jpeg" }));
-
-  const response = await fetch(`${GATEWAY}/images/edits`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: form,
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    console.error(`Image edit failed [${response.status}]: ${text}`);
-    if (response.status === 402) throw new Error("AI credits have run out. Add credits in Settings → Plans & credits, then try again.");
-    if (response.status === 429) throw new Error("Too many photos are being created right now. Please try again in a minute.");
-    let message = "";
-    try { message = (JSON.parse(text) as { error?: { message?: string }; message?: string }).error?.message ?? ""; } catch { /* not json */ }
-    throw new Error(message || `Photo creation failed (${response.status}).`);
-  }
-  const result = (await response.json()) as { data?: { b64_json?: string }[] };
-  const b64 = result.data?.[0]?.b64_json;
-  if (!b64) throw new Error("No photo came back. The image may have been declined.");
+  const bytes = new Uint8Array(await original.arrayBuffer());
+  let input = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) input += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  const b64 = await generateMetaPhoto(`data:${original.type || "image/jpeg"};base64,${btoa(input)}`, style);
   const binary = atob(b64);
-  const png = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) png[i] = binary.charCodeAt(i);
-  return png;
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
 }

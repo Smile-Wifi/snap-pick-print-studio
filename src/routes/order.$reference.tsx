@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, CheckCircle2, Clock3, Copy, Download, ExternalLink, Image, LockKeyhole, Send, XCircle } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SiteFooter, SiteHeader } from "@/components/pasko-layout";
 import { packages, peso, STATUS_LABEL } from "@/lib/pasko-content";
+import { PaidPhotoGallery } from "@/components/paid-photo-gallery";
+import SantaBells from "@/assets/santa-bells-first-10s.mp3.asset.json";
 import { Slideshow } from "@/components/order/Slideshow";
 import { getCustomerOrder, submitPaymentProof } from "@/lib/orders.functions";
 import MayaQr from "@/assets/maya-qr.jpeg.asset.json";
@@ -37,6 +39,8 @@ function OrderPage() {
   const { reference } = Route.useParams();
   const { t } = Route.useSearch();
   const order = Route.useLoaderData();
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
   const submitPayment = useServerFn(submitPaymentProof);
   const [paymentReference, setPaymentReference] = useState(order?.paymentReference ?? "");
   const [screenshot, setScreenshot] = useState("");
@@ -44,10 +48,10 @@ function OrderPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!order || order.status === "completed" || order.status === "rejected") return undefined;
-    const interval = window.setInterval(() => window.location.reload(), 45_000);
+    if (!order || creating || order.status === "completed" || order.status === "rejected") return undefined;
+    const interval = window.setInterval(() => void router.invalidate(), 15_000);
     return () => window.clearInterval(interval);
-  }, [order]);
+  }, [order, creating, router]);
 
   async function selectScreenshot(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
@@ -135,8 +139,8 @@ function OrderPage() {
       </section>
       <aside className="order-photo-aside">
         <h2 className="step-heading"><Image size={19} /> Your photos</h2>
-        {order.results.length ? <div className="result-grid">{order.results.map((url, index) => <a href={url} download key={url} aria-label={`Download Christmas portrait ${index + 1}`}><img src={url} alt={`Christmas portrait ${index + 1}`} /><span><Download size={14} /> Download</span></a>)}</div> : <div className="result-placeholder"><span className="upload-icon"><Clock3 /></span><strong>Your photos will appear here</strong><p>Five Christmas portraits are created after payment is confirmed.</p></div>}
-        {order.pkg === "premium" && order.results.length === 5 && <Slideshow images={order.results} musicUrl={null} musicTitle={null} fileName={`${reference}-slideshow`} />}
+        {["payment_verified", "processing", "failed", "completed"].includes(order.status) ? <PaidPhotoGallery reference={reference} token={t} status={order.status} images={order.resultSlots} error={order.generationError} onBusy={setCreating} /> : <div className="result-placeholder"><span className="upload-icon"><Clock3 /></span><strong>Your photos will appear here</strong><p>Five Christmas portraits are created after payment is confirmed.</p></div>}
+        {order.pkg === "premium" && order.results.length === 5 && <Slideshow images={order.results} musicUrl={SantaBells.url} musicTitle="Christmas Bells" fileName={`${reference}-slideshow`} />}
         {order.originalUrl && <details className="original-photo-details"><summary>View uploaded photo</summary><a href={order.originalUrl} target="_blank" rel="noreferrer"><img src={order.originalUrl} alt="Uploaded original photo" /><span>Open original <ExternalLink size={14} /></span></a></details>}
         <p className="summary-privacy"><LockKeyhole size={12} className="inline-block align-middle" /> Private link · Photos deleted after 30 days</p>
       </aside>

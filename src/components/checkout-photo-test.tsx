@@ -4,7 +4,7 @@ import { Download, FlaskConical, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { testCheckoutPhoto } from "@/lib/photo-test.functions";
-import { photoStyles } from "@/lib/pasko-content";
+import { photoStyles, STYLES } from "@/lib/pasko-content";
 import { dataUrlToBlob, deliverFile } from "@/lib/download";
 import { LocalPackageDownload } from "@/components/LocalDownloadControls";
 import { Slideshow } from "@/components/order/Slideshow";
@@ -30,7 +30,8 @@ export function CheckoutPhotoTest({ photo, template, pkg = "basic" }: { photo: s
     for (const index of order) {
       setSlots((p) => p.map((s, i) => (i === index ? { ...s, busy: true } : s)));
       try {
-        const r = await run({ data: { photo, index } });
+        const renderIndex = STYLES.findIndex(style => style.key === photoStyles[index]?.key);
+        const r = await run({ data: { photo, index: renderIndex } });
         setSlots((p) => p.map((s, i) => (i === index ? { image: r.image, error: "", busy: false } : s)));
       } catch (e) {
         const message = e instanceof Error ? e.message : "Photo test failed. Please try again.";

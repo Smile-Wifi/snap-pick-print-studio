@@ -21,3 +21,6 @@
 - [ ] Replace Mock Payment button with real Maya/GoTyme payment links — waiting on the owner's payment link URLs.
 - [ ] Add Meta (Llama) model support on the server using the MODEL_API_KEY secret — owner adds the key in Cloud Secrets.
 - [ ] Staff Image Generator page using Meta image model (muse-image-1.0) via server function.
+
+- [x] Connect Meta Muse photo edits, homepage snow demo, and payment-verified parallel five-style gallery with downloads/retries.
+- [ ] Verify real Meta renders and paid gallery end-to-end — blocked by Meta HTTP 401; owner must replace MODEL_API_KEY in Cloud Secrets.
