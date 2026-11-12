@@ -16,6 +16,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ImageGeneratorRouteImport } from './routes/image-generator'
 import { Route as ManualPaymentRouteImport } from './routes/manual-payment'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -59,6 +60,11 @@ const FaqRoute = FaqRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImageGeneratorRoute = ImageGeneratorRouteImport.update({
+  id: '/image-generator',
+  path: '/image-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ManualPaymentRoute = ManualPaymentRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/image-generator': typeof ImageGeneratorRoute
   '/manual-payment': typeof ManualPaymentRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/image-generator': typeof ImageGeneratorRoute
   '/manual-payment': typeof ManualPaymentRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/faq': typeof FaqRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/image-generator': typeof ImageGeneratorRoute
   '/manual-payment': typeof ManualPaymentRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/faq'
     | '/how-it-works'
+    | '/image-generator'
     | '/manual-payment'
     | '/pricing'
     | '/privacy'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/faq'
     | '/how-it-works'
+    | '/image-generator'
     | '/manual-payment'
     | '/pricing'
     | '/privacy'
@@ -214,6 +225,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/faq'
     | '/how-it-works'
+    | '/image-generator'
     | '/manual-payment'
     | '/pricing'
     | '/privacy'
@@ -234,6 +246,7 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   FaqRoute: typeof FaqRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  ImageGeneratorRoute: typeof ImageGeneratorRoute
   ManualPaymentRoute: typeof ManualPaymentRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/image-generator': {
+      id: '/image-generator'
+      path: '/image-generator'
+      fullPath: '/image-generator'
+      preLoaderRoute: typeof ImageGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/manual-payment': {
@@ -388,6 +408,7 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   FaqRoute: FaqRoute,
   HowItWorksRoute: HowItWorksRoute,
+  ImageGeneratorRoute: ImageGeneratorRoute,
   ManualPaymentRoute: ManualPaymentRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,

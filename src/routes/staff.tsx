@@ -126,7 +126,7 @@ function Dashboard({ token, onSignOut }: { token: string; onSignOut: () => void 
 
   const stats = data?.stats ?? { total: 0, pendingVerification: 0, waiting: 0, paid: 0, completed: 0 };
   return <div className="create-page"><SiteHeader /><main className="admin-page">
-    <div className="admin-topline"><div><p className="page-eyebrow">JIS Company · Private studio</p><h1>Payments &amp; orders</h1></div><div className="admin-actions"><Button type="button" variant="outline" onClick={() => void loadSettings()}><Save /> Settings</Button><Button type="button" variant="ghost" size="icon" aria-label="Refresh orders" onClick={() => void refetch()}><RefreshCw /></Button><Button type="button" variant="outline" onClick={onSignOut}><LogOut /> Sign out</Button></div></div>
+    <div className="admin-topline"><div><p className="page-eyebrow">JIS Company · Private studio</p><h1>Payments &amp; orders</h1></div><div className="admin-actions"><Button asChild variant="outline"><Link to="/image-generator"><Sparkles /> Image Generator</Link></Button><Button type="button" variant="outline" onClick={() => void loadSettings()}><Save /> Settings</Button><Button type="button" variant="ghost" size="icon" aria-label="Refresh orders" onClick={() => void refetch()}><RefreshCw /></Button><Button type="button" variant="outline" onClick={onSignOut}><LogOut /> Sign out</Button></div></div>
     <section className="admin-stats" aria-label="Order totals">
       <article><span>Waiting for verification</span><strong className="stat-amber">{stats.pendingVerification}</strong></article>
       <article><span>Awaiting payment</span><strong>{stats.waiting}</strong></article>

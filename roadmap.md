@@ -20,3 +20,4 @@
 - [x] Replace Santa's Eyeberry flag with a "MALIGAYANG PASKO 2026" banner.
 - [ ] Replace Mock Payment button with real Maya/GoTyme payment links — waiting on the owner's payment link URLs.
 - [ ] Add Meta (Llama) model support on the server using the MODEL_API_KEY secret — owner adds the key in Cloud Secrets.
+- [ ] Staff Image Generator page using Meta image model (muse-image-1.0) via server function.
