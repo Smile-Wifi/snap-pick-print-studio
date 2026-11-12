@@ -32,7 +32,7 @@ export function createSlideshowRecorder(stream: MediaStream): MediaRecorder {
     for (const mimeType of VIDEO_TYPES) {
       if (!MediaRecorder.isTypeSupported(mimeType)) continue;
       // Some phones advertise a codec but cannot initialize its encoder.
-      for (const options of [{ mimeType, videoBitsPerSecond: 4_000_000 }, { mimeType }]) {
+      for (const options of [{ mimeType, videoBitsPerSecond: 5_000_000, audioBitsPerSecond: 128_000 }, { mimeType }]) {
         try { return new MediaRecorder(stream, options); } catch { /* Try safer options, then the next codec. */ }
       }
     }
@@ -197,6 +197,7 @@ export async function recordSlideshow(photos: Blob[], music: Blob | null, onProg
     const ctx = canvas.getContext("2d");
     if (!ctx || !canvas.captureStream) throw new Error("Video recording is unavailable here. Please open this page in Safari or Chrome.");
     stream = canvas.captureStream(30);
+    // Ensure the encoder is given a real bitrate so videos are full quality, not tiny files.
     const total = SLIDESHOW_DURATION_SECONDS;
     if (music && audioCtx) {
       const buf = await audioCtx.decodeAudioData(await music.arrayBuffer());
@@ -219,9 +220,11 @@ export async function recordSlideshow(photos: Blob[], music: Blob | null, onProg
     const draw = (t: number) => drawFilmFrame(ctx, bitmaps, t, grain);
     await new Promise<void>((resolve, reject) => {
       let stopped = false;
+      let timer = 0;
       const cleanup = () => {
         stopped = true;
         cancelAnimationFrame(frame);
+        clearTimeout(timer);
         document.removeEventListener("visibilitychange", visibility);
         signal?.removeEventListener("abort", abort);
       };
@@ -244,15 +247,19 @@ export async function recordSlideshow(photos: Blob[], music: Blob | null, onProg
         if (stopped) return;
         source?.start();
         const start = performance.now();
+        // A timer (not animation frames) keeps 30fps even in embedded/background views,
+        // so the file always has a full 15 seconds of frames.
+        const track = stream?.getVideoTracks()[0] as (MediaStreamTrack & { requestFrame?: () => void }) | undefined;
         const tick = () => {
           if (stopped) return;
           const t = (performance.now() - start) / 1000;
-          if (t >= total) { recordedMs = t * 1000; recorder.stop(); return; }
+          if (t >= total) { draw(total); track?.requestFrame?.(); recordedMs = total * 1000; recorder.stop(); return; }
           draw(t);
+          track?.requestFrame?.();
           onProgress(t / total);
-          frame = requestAnimationFrame(tick);
+          timer = window.setTimeout(tick, 1000 / 30);
         };
-        frame = requestAnimationFrame(tick);
+        tick();
       };
       try {
         signal?.throwIfAborted();
