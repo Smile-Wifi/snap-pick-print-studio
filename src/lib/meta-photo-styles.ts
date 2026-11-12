@@ -9,6 +9,14 @@ export const META_STYLE_PROMPTS: Record<MetaPhotoStyle, string> = {
   street: "bright Filipino street Christmas celebration, colorful lights, night street, parol lanterns, festive bokeh",
   barong: "elegant traditional Filipino holiday portrait, wearing elegant barong / Filipiniana, formal studio with gold Christmas lights",
 };
+/** Each style uses its own body pose so the five results never look like the same photo. */
+export const META_STYLE_POSES: Record<MetaPhotoStyle, string> = {
+  "simbang-gabi": "new pose: standing in three-quarter view at the church entrance, hands gently clasped in front, looking at the camera, full upper body",
+  snow: "new pose: walking toward the camera mid-step in the snow, one hand holding the scarf, head slightly tilted, three-quarter body shot",
+  pajama: "new pose: sitting cross-legged on the floor beside the Christmas tree holding a wrapped gift, relaxed and leaning slightly forward",
+  street: "new pose: candid laughing pose, holding a glowing parol lantern up beside the shoulder, body turned sideways, face toward the camera",
+  barong: "new pose: formal standing pose, straight posture, one hand resting on a chair back, full body portrait",
+};
 export function metaPhotoPrompt(style: MetaPhotoStyle) {
-  return `${META_STYLE_PROMPTS[style]}, keep the exact same person's face, identity, hairstyle and smile, photorealistic. Keep the same number of people. No text or watermark.`;
+  return `${META_STYLE_PROMPTS[style]}. ${META_STYLE_POSES[style]}, different from the original photo pose and camera angle; keep the exact same person's face, identity, hairstyle and smile, photorealistic. Keep the same number of people. No text or watermark.`;
 }

@@ -72,3 +72,13 @@ describe("Meta Muse Christmas edits", () => {
     expect(attempt.mock.calls.map(([p]) => p)).toEqual(["meta", "meta", "fallback"]);
   });
 });
+
+import { META_STYLE_POSES as POSES } from "@/lib/meta-photo-styles";
+import { describe as d2, it as i2, expect as e2 } from "vitest";
+d2("style poses", () => {
+  i2("every style asks for a different pose", () => {
+    const poses = Object.values(POSES);
+    e2(poses).toHaveLength(5);
+    e2(new Set(poses).size).toBe(5);
+  });
+});
