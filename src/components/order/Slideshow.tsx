@@ -124,7 +124,7 @@ function SlideshowPlayer({ images, musicUrl, musicTitle, blobs = {}, fileName = 
           </div>
         ) : video ? (
           <div className="space-y-3">
-            <video src={video.url} controls playsInline preload="metadata" aria-label="Slideshow video preview" className="max-h-96 w-full rounded-xl" onError={() => { setError("This browser cannot play the video. Open this page in Safari or Chrome and create it again."); setVideo(null); }} />
+            <video src={video.url} controls playsInline preload="metadata" aria-label="Slideshow video preview" className="max-h-96 w-full rounded-xl" onError={() => setError("This browser cannot preview the video, but you can still save it below.")} />
             <div className="flex flex-wrap gap-2">
             <LocalFileSave blob={video.blob} name={`${fileName}.${video.ext}`} label="Save slideshow video" />
             <Button asChild variant="outline"><a href={video.url} target="_blank" rel="noopener noreferrer"><ExternalLink /> Open video</a></Button>
